@@ -103,8 +103,6 @@
       "required": [
         "groupId",
         "subjectId",
-        "tumorDnaBamUri",
-        "normalDnaBamUri",
         "tumorDnaSampleId",
         "normalDnaSampleId",
         "dragenSomaticDir",
