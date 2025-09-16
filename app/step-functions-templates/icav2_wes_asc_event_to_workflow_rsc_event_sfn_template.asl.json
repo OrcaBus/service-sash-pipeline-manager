@@ -18,7 +18,7 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Arguments": {
-        "FunctionName": "${__convert_icav2_wes_to_wrsc_event_lambda_function_arn__}",
+        "FunctionName": "${__convert_icav2_wes_event_to_wrsc_event_lambda_function_arn__}",
         "Payload": {
           "icav2WesStateChangeEvent": "{% $icav2WesStateChangeEvent %}"
         }
@@ -48,7 +48,7 @@
       "Choices": [
         {
           "Next": "Put WRSC Event",
-          "Condition": "{% /* ${__new_workflow_manager_is_deployed__} */ false %}"
+          "Condition": "{% ${__new_workflow_manager_is_deployed__} %}"
         }
       ],
       "Default": "Put WRSC Event Legacy"
@@ -59,7 +59,7 @@
       "Arguments": {
         "Entries": [
           {
-            "Detail": "{% /* Merge workflowRunStateChangeEvent with the status object */\n$merge(\n  $workflowRunStateChangeEvent,\n  {\n    \"status\": $status\n  }\n) %}",
+            "Detail": "{% /* Merge workflowRunStateChangeEvent with the status object */\n$merge([\n  $workflowRunStateChangeEvent,\n  {\n    \"status\": $status\n  }\n]) %}",
             "DetailType": "${__workflow_run_state_change_event_detail_type__}",
             "EventBusName": "${__event_bus_name__}",
             "Source": "${__stack_source__}"

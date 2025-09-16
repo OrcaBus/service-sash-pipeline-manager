@@ -7,13 +7,35 @@ import { StepFunctionObject } from '../step-functions/interfaces';
  * EventBridge Target Interfaces
  */
 export type EventBridgeTargetName =
+  // Upstream Succeeded
+  | 'upstreamSucceededEventLegacyToGlueSucceededEvents'
+  | 'upstreamSucceededEventToGlueSucceededEvents'
+  // Populate draft data event targets
+  | 'draftLegacyToPopulateDraftDataSfnTarget'
+  | 'draftToPopulateDraftDataSfnTarget'
+  // Validate draft to ready
+  | 'draftLegacyToValidateDraftSfnTarget'
+  | 'draftToValidateDraftSfnTarget'
+  // Ready to ICAv2 WES Submitted
   | 'readyLegacyToIcav2WesSubmittedSfnTarget'
   | 'readyToIcav2WesSubmittedSfnTarget'
+  // Post submission
   | 'icav2WesAnalysisStateChangeEventToWrscSfnTarget';
 
 export const eventBridgeTargetsNameList: EventBridgeTargetName[] = [
+  // Upstream Succeeded
+  'upstreamSucceededEventLegacyToGlueSucceededEvents',
+  'upstreamSucceededEventToGlueSucceededEvents',
+  // Populate draft data event targets
+  'draftLegacyToPopulateDraftDataSfnTarget',
+  'draftToPopulateDraftDataSfnTarget',
+  // Validate draft to ready
+  'draftLegacyToValidateDraftSfnTarget',
+  'draftToValidateDraftSfnTarget',
+  // Ready to ICAv2 WES Submitted
   'readyLegacyToIcav2WesSubmittedSfnTarget',
   'readyToIcav2WesSubmittedSfnTarget',
+  // Post submission
   'icav2WesAnalysisStateChangeEventToWrscSfnTarget',
 ];
 

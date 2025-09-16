@@ -28,7 +28,10 @@ export interface StatelessApplicationStackConfig {
 
   // Workflow manager stuff
   isNewWorkflowManagerDeployed: boolean;
+
+  // SSM Parameters
+  ssmParameterPaths: SsmParameterPaths;
 }
 
 /* Set versions */
-export type VersionType = '0.6.0';
+export type WorkflowVersionType = '0.6.0' | '0.6.2';
