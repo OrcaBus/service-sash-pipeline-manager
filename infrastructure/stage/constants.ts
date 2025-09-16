@@ -1,7 +1,7 @@
 /* Directory constants */
 import path from 'path';
 import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
-import { VersionType } from './interfaces';
+import { WorkflowVersionType } from './interfaces';
 
 export const APP_ROOT = path.join(__dirname, '../../app');
 export const LAMBDA_DIR = path.join(APP_ROOT, 'lambdas');
@@ -24,14 +24,18 @@ export const WORKFLOW_CACHE_PREFIX = `s3://{__CACHE_BUCKET__}/{__CACHE_PREFIX__}
 
 /* We extend this every time we release a new version of the workflow */
 /* This is added into our SSM Parameter Store to allow us to map workflow versions to pipeline IDs */
-export const WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP: Record<VersionType, string> = {
+export const WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP: Record<
+  WorkflowVersionType,
+  string
+> = {
   // At the moment we are running manual deployments of the workflow
   '0.6.0': 'ab6e1d62-1b5a-4b24-86b8-81ccf4bdc7a2',
+  '0.6.2': '1ad88cf2-f78a-4c3b-8beb-41203cd3becc',
 };
 
-export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<VersionType, string> = {
-  '0.6.0':
-    's3://pipeline-prod-cache-503977275616-ap-southeast-2/byob-icav2/reference-data/sash/0.6.0/',
+export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersionType, string> = {
+  '0.6.0': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.0/',
+  '0.6.2': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.2/',
 };
 
 /* SSM Parameter Paths */
@@ -74,19 +78,19 @@ export const SSM_PARAMETER_PATH_PREFIX_SASH_REFERENCE_PATHS_BY_WORKFLOW_VERSION 
 export const EVENT_BUS_NAME = 'OrcaBusMain';
 export const EVENT_SOURCE = 'orcabus.sash';
 export const WORKFLOW_RUN_STATE_CHANGE_DETAIL_TYPE = 'WorkflowRunStateChange';
+export const WORKFLOW_RUN_UPDATE_DETAIL_TYPE = 'WorkflowRunUpdate';
 export const ICAV2_WES_REQUEST_DETAIL_TYPE = 'Icav2WesRequest';
 export const ICAV2_WES_STATE_CHANGE_DETAIL_TYPE = 'Icav2WesAnalysisStateChange';
-
 export const WORKFLOW_MANAGER_EVENT_SOURCE = 'orcabus.workflowmanager';
 export const ICAV2_WES_EVENT_SOURCE = 'orcabus.icav2wesmanager';
-
-// Yet to implement draft events into this service
-// export const FASTQ_SYNC_DETAIL_TYPE = 'FastqSync';
+export const DRAGEN_WGTS_DNA_WORKFLOW_NAME = 'dragen-wgts-dna';
+export const ONCOANALYSER_WGTS_DNA_WORKFLOW_NAME = 'oncoanalyser-wgts-dna';
 
 /* Event rule constants */
 // Yet to implement draft events into this service
-// export const DRAFT_STATUS = 'DRAFT';
+export const DRAFT_STATUS = 'DRAFT';
 export const READY_STATUS = 'READY';
+export const SUCCEEDED_STATUS = 'SUCCEEDED';
 
 /* Schema constants */
 // Yet to implement draft events into this service
