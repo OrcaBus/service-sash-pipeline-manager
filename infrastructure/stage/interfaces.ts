@@ -34,4 +34,4 @@ export interface StatelessApplicationStackConfig {
 }
 
 /* Set versions */
-export type WorkflowVersionType = '0.6.0' | '0.6.2';
+export type WorkflowVersionType = '0.6.0' | '0.6.1';

@@ -30,12 +30,12 @@ export const WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP: Record<
 > = {
   // At the moment we are running manual deployments of the workflow
   '0.6.0': 'ab6e1d62-1b5a-4b24-86b8-81ccf4bdc7a2',
-  '0.6.2': '1ad88cf2-f78a-4c3b-8beb-41203cd3becc',
+  '0.6.1': '5c8d2267-73bc-4923-83ec-15fe1aa6aed9',
 };
 
 export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersionType, string> = {
   '0.6.0': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.0/',
-  '0.6.2': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.2/',
+  '0.6.1': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
 };
 
 /* SSM Parameter Paths */
