@@ -72,7 +72,7 @@
       ],
       "Next": "Did we get a sash portal run id",
       "Assign": {
-        "sashPortalRunId": "{% $states.result.Payload.workflowRunObject.portalRunId %}"
+        "draftPortalRunId": "{% $states.result.Payload.workflowRunObject.portalRunId %}"
       }
     },
     "Did we get a sash portal run id": {
@@ -80,7 +80,7 @@
       "Choices": [
         {
           "Next": "Get sash draft payload",
-          "Condition": "{% $sashPortalRunId ? true : false %}"
+          "Condition": "{% $draftPortalRunId ? true : false %}"
         }
       ],
       "Default": "No sash portal run id found"
@@ -89,12 +89,12 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Assign": {
-        "sashDraftPayload": "{% $states.result.Payload.payload %}"
+        "draftPayload": "{% $states.result.Payload.payload %}"
       },
       "Arguments": {
         "FunctionName": "${__get_draft_payload_lambda_function_arn__}",
         "Payload": {
-          "portalRunId": "{% $sashPortalRunId %}"
+          "portalRunId": "{% $draftPortalRunId %}"
         }
       },
       "Retry": [
@@ -123,7 +123,7 @@
       "Arguments": {
         "Entries": [
           {
-            "Detail": "{% $merge([\n  $sashDraftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime\n  }\n])\n/* Remove null inputs like id */\n~> $sift(function($v, $k){$v != null}) %}",
+            "Detail": "{% $merge([\n  $draftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime\n  }\n])\n/* Remove null inputs like id */\n~> $sift(function($v, $k){$v != null}) %}",
             "DetailType": "${__workflow_run_update_event_detail_type__}",
             "EventBusName": "${__event_bus_name__}",
             "Source": "${__stack_source__}"
@@ -138,7 +138,7 @@
       "Arguments": {
         "Entries": [
           {
-            "Detail": "{% /* https://try.jsonata.org/r0aCmiix- */\n$merge([\n  $sashDraftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime,\n    \"libraries\": ($libraries ~> | $ | {}, [\"readsets\"] |)\n  }\n]) ~>\n/* Renamed libraries to linkedLibraries using the transform method */\n| $ | {\"linkedLibraries\": libraries}, [\"libraries\"] | ~>\n/* Renamed workflowName and workflowVersion using the transform method */\n| $ | {\"workflowName\": workflow.name, \"workflowVersion\": workflow.version}, [\"workflow\"] | %}",
+            "Detail": "{% /* https://try.jsonata.org/r0aCmiix- */\n$merge([\n  $draftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime,\n    \"libraries\": ($libraries ~> | $ | {}, [\"readsets\"] |)\n  }\n]) ~>\n/* Renamed libraries to linkedLibraries using the transform method */\n| $ | {\"linkedLibraries\": libraries}, [\"libraries\"] | ~>\n/* Renamed workflowName and workflowVersion using the transform method */\n| $ | {\"workflowName\": workflow.name, \"workflowVersion\": workflow.version}, [\"workflow\"] | %}",
             "DetailType": "${__workflow_run_state_change_event_detail_type__}",
             "EventBusName": "${__event_bus_name__}",
             "Source": "${__stack_source__}"
@@ -213,7 +213,7 @@
                       "Choices": [
                         {
                           "Next": "Get dragen somatic dir from portal run id",
-                          "Condition": "{% $sashDraftPayload.tags.tumorLibraryId ? true : false %}"
+                          "Condition": "{% $draftPayload.tags.tumorLibraryId ? true : false %}"
                         }
                       ],
                       "Default": "Germline only"
@@ -321,14 +321,14 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Assign": {
-        "sashDraftWorkflowRunUpdate": "{% $states.result.Payload.sashWorkflowRunUpdate %}",
-        "newSashPayload": "{% $states.result.Payload.sashWorkflowRunUpdate.payload %}"
+        "draftWorkflowRunUpdate": "{% $states.result.Payload.workflowRunUpdate %}",
+        "newDraftPayload": "{% $states.result.Payload.workflowRunUpdate.payload %}"
       },
       "Arguments": {
         "FunctionName": "${__generate_wru_event_object_with_merged_data_lambda_function_arn__}",
         "Payload": {
           "portalRunId": "{% $draftDetail.portalRunId %}",
-          "payload": "{% $sashDraftPayload %}",
+          "payload": "{% $draftPayload %}",
           "upstreamData": "{% $newWorkflowInputs %}"
         }
       },
@@ -357,8 +357,8 @@
       "Arguments": {
         "FunctionName": "${__compare_payload_lambda_function_arn__}",
         "Payload": {
-          "oldPayload": "{% $sashDraftPayload %}",
-          "newPayload": "{% $newSashPayload %}"
+          "oldPayload": "{% $draftPayload %}",
+          "newPayload": "{% $newDraftPayload %}"
         }
       },
       "Retry": [

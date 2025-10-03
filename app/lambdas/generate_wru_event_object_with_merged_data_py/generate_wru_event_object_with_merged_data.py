@@ -69,7 +69,7 @@ def handler(event, context):
             "data": sash_payload['data']
         }
         return {
-            "sashWorkflowRunUpdate": sash_draft_workflow_update
+            "workflowRunUpdate": sash_draft_workflow_update
         }
 
     # Merge the data from the dragen draft payload into the oncoanalyser draft payload
@@ -103,5 +103,5 @@ def handler(event, context):
     }
 
     return {
-        "sashWorkflowRunUpdate": sash_draft_workflow_update
+        "workflowRunUpdate": sash_draft_workflow_update
     }
