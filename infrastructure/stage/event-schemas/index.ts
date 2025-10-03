@@ -1,6 +1,11 @@
 import * as schemas from 'aws-cdk-lib/aws-eventschemas';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { EVENT_SCHEMAS_DIR, SCHEMA_REGISTRY_NAME, SSM_SCHEMA_ROOT } from '../constants';
+import {
+  EVENT_SCHEMAS_DIR,
+  SCHEMA_REGISTRY_NAME,
+  SSM_SCHEMA_ROOT,
+  STACK_PREFIX,
+} from '../constants';
 import * as path from 'path';
 import * as fs from 'fs';
 import { schemaNamesList, BuildSchemaProps } from './interfaces';
@@ -24,24 +29,21 @@ export function buildSchema(scope: Construct, props: BuildSchemaProps): schemas.
   return new schemas.CfnSchema(scope, props.schemaName, {
     type: 'JSONSchemaDraft4',
     content: fs.readFileSync(schemaPath, 'utf-8'),
-    registryName: props.registry.attrRegistryName,
+    registryName: SCHEMA_REGISTRY_NAME,
+    schemaName: `${STACK_PREFIX}--${props.schemaName}`,
   });
 }
 
 export function buildSchemasAndRegistry(scope: Construct) {
-  // Build the registry
-  const registryObj = buildRegistry(scope, SCHEMA_REGISTRY_NAME);
-
   // Add an ssm entry for the registry name
   new ssm.StringParameter(scope, `${SCHEMA_REGISTRY_NAME}-ssm`, {
     parameterName: path.join(SSM_SCHEMA_ROOT, 'registry'),
-    stringValue: <string>registryObj.registryName,
+    stringValue: SCHEMA_REGISTRY_NAME,
   });
 
   // Iterate over the schemas directory and create a schema for each file
   for (const schemaName of schemaNamesList) {
     const schemaObj = buildSchema(scope, {
-      registry: registryObj,
       schemaName: schemaName,
     });
     // And also a latest ssm parameter for the schema
