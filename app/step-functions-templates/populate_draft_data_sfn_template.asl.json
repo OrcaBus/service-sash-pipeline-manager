@@ -938,7 +938,7 @@
       ],
       "Next": "Compare payload",
       "Assign": {
-        "sashDraftWorkflowRunUpdate": "{% $states.result.Payload.sashWorkflowRunUpdate %}"
+        "draftWorkflowRunUpdate": "{% $states.result.Payload.workflowRunUpdate %}"
       }
     },
     "Compare payload": {
@@ -949,7 +949,7 @@
         "FunctionName": "${__compare_payload_lambda_function_arn__}",
         "Payload": {
           "oldPayload": "{% $draftPayload ~> \n| $ | {}, [\"orcabusId\", \"refId\"] | %}",
-          "newPayload": "{% $sashDraftWorkflowRunUpdate.payload %}"
+          "newPayload": "{% $draftWorkflowRunUpdate.payload %}"
         }
       },
       "Retry": [
@@ -996,7 +996,7 @@
       "Arguments": {
         "Entries": [
           {
-            "Detail": "{% $merge([\n  $sashDraftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime }\n])\n/* Remove null inputs like id */\n~> $sift(function($v, $k){$v != null}) %}",
+            "Detail": "{% $merge([\n  $draftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime }\n])\n/* Remove null inputs like id */\n~> $sift(function($v, $k){$v != null}) %}",
             "DetailType": "${__workflow_run_update_event_detail_type__}",
             "EventBusName": "${__event_bus_name__}",
             "Source": "${__stack_source__}"
@@ -1015,7 +1015,7 @@
       "Arguments": {
         "Entries": [
           {
-            "Detail": "{% /* https://try.jsonata.org/r0aCmiix- */\n$merge([\n  $sashDraftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime,\n    \"libraries\": ($libraries ~> | $ | {}, [\"readsets\"] |)\n  }\n]) ~>\n/* Renamed libraries to linkedLibraries using the transform method */\n| $ | {\"linkedLibraries\": libraries}, [\"libraries\"] | ~>\n/* Renamed workflowName and workflowVersion using the transform method */\n| $ | {\"workflowName\": workflow.name, \"workflowVersion\": workflow.version}, [\"workflow\"] | %}",
+            "Detail": "{% /* https://try.jsonata.org/r0aCmiix- */\n$merge([\n  $draftWorkflowRunUpdate,\n  {\n    \"timestamp\": $states.context.State.EnteredTime,\n    \"libraries\": ($libraries ~> | $ | {}, [\"readsets\"] |)\n  }\n]) ~>\n/* Renamed libraries to linkedLibraries using the transform method */\n| $ | {\"linkedLibraries\": libraries}, [\"libraries\"] | ~>\n/* Renamed workflowName and workflowVersion using the transform method */\n| $ | {\"workflowName\": workflow.name, \"workflowVersion\": workflow.version}, [\"workflow\"] | %}",
             "DetailType": "${__workflow_run_state_change_event_detail_type__}",
             "EventBusName": "${__event_bus_name__}",
             "Source": "${__stack_source__}"
