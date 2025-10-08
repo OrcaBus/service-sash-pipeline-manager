@@ -72,7 +72,7 @@
       ],
       "Next": "Did we get a sash portal run id",
       "Assign": {
-        "draftPortalRunId": "{% $states.result.Payload.workflowRunObject.portalRunId %}"
+        "draftPortalRunId": "{% $states.result.Payload.workflowRunObject.portalRunId ? $states.result.Payload.workflowRunObject.portalRunId : null %}"
       }
     },
     "Did we get a sash portal run id": {
@@ -165,7 +165,7 @@
                   "Condition": "{% $upstreamWorkflowName = '${__dragen_wgts_dna_workflow_name__}' %}"
                 }
               ],
-              "Default": "Pass"
+              "Default": "Pass (Dragen)"
             },
             "Get directories": {
               "Type": "Parallel",
@@ -254,9 +254,10 @@
                     }
                   }
                 }
-              ]
+              ],
+              "Output": "{% $states.result ~> $merge %}"
             },
-            "Pass": {
+            "Pass (Dragen)": {
               "Type": "Pass",
               "End": true,
               "Output": {}
@@ -327,7 +328,7 @@
       "Arguments": {
         "FunctionName": "${__generate_wru_event_object_with_merged_data_lambda_function_arn__}",
         "Payload": {
-          "portalRunId": "{% $draftDetail.portalRunId %}",
+          "portalRunId": "{% $draftPortalRunId %}",
           "payload": "{% $draftPayload %}",
           "upstreamData": "{% $newWorkflowInputs %}"
         }
