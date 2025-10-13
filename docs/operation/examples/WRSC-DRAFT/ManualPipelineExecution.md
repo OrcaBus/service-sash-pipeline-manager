@@ -28,7 +28,7 @@ Requirements
 Procedure
 --------------------------------------------------------------------------------
 
-To initate a pipeline execution we need to generate an initial DRAFT event. For more details consult the main [README](../../../../README.md).
+To initiate a pipeline execution we need to generate an initial DRAFT event. For more details consult the main [README](../../../../README.md).
 For convenience we provide a shell script that generates and optionally submits an appropriate event.
 
 - familiarise yourself with the script: [generate-WRSC-draft.sh](./generate-WRSC-draft.sh)
