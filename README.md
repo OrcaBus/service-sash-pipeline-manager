@@ -34,7 +34,7 @@ Description
 ### Summary
 
 This is the Sash Pipeline Management service,
-responsible for orcestrating the Sash pipeline and managing its state.
+responsible for orchestrating the Sash pipeline and managing its state.
 
 This service has 3 parts:
 - **DRAFT Event Populator**: responsible for providing execution parameters
