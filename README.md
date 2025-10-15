@@ -6,10 +6,10 @@ Sash Service
   - [Events Overview](#events-overview)
   - [Consumed Events](#consumed-events)
   - [Published Events](#published-events)
-  - [Ready Event Example](#ready-event-example)
-    - [Making your own draft events with BASH / JQ (dev)](#making-your-own-draft-events-with-bash--jq-dev)
-    - [Making your own draft events with BASH / JQ (prod)](#making-your-own-draft-events-with-bash--jq-prod)
+  - [DRAFT Event Example (complete)](#draft-event-example-complete)
     - [Manually Validating Schemas :construction:](#manually-validating-schemas-construction)
+    - [Making your own DRAFT WRU events with BASH / JQ (new system)](#making-your-own-draft-wru-events-with-bash--jq-new-system)
+    - [Making your own DRAFT WRSC events with BASH / JQ (legacy system)](#making-your-own-draft-wrsc-events-with-bash--jq-legacy-system)
     - [Release management :construction:](#release-management-construction)
 - [Infrastructure \& Deployment :construction:](#infrastructure--deployment-construction)
   - [Stateful](#stateful)
@@ -34,36 +34,56 @@ Description
 ### Summary
 
 This is the Sash Pipeline Management service,
-responsible for orcestrating the Sash pipeline and managing its state.
+responsible for orchestrating the Sash pipeline and managing its state.
+
+This service has 3 parts:
+- **DRAFT Event Populator**: responsible for providing execution parameters
+- **DRAFT Event Validator**: responsible for validating execution requirements
+- **Execution Manager**: responsible for executing and monitoring pipeline runs
+  - **ICAv2 WES to WRU Converter**: (sub-component) responsible for converting external WES events to internal WRU events
 
 The pipeline runs on ICAv2 through Nextflow (version 24.10)
 
 ### Events Overview
 
-**Ready Event**
-We listen to READY WRSC events where the workflow name is equal to `oncoanalyser-wgts-dna`
+![events-overview](docs/draw-io-exports/sash-pipeline.drawio.svg)
+
+**DRAFT Event Population**
+This is handled by the DRAFT Event Populator.
+We listen to DRAFT WRSC events where the workflow name is equal to `sash`.
+We then try to populate the inputs for the workflow run, and generate a complete DRAFT WRU event.
+
+**DRAFT Event Validation**
+This is handled by the DRAFT Event Validator.
+We listen to DRAFT WRSC events where the workflow name is equal to `sash`.
+We then validate the DRAFT event against the schema and check its execution requirements. If valid, we generate a READY WRU event.
+
+**READY Event Handler**
+This is handled by the Execution Manager.
+We listen to READY WRSC events where the workflow name is equal to `sash`.
+We parse this to the ICAv2 WES Service to generate a ICAv2 WES workflow request.
 
 **ICAv2 WES Analysis State Change**
-We then parse ICAv2 Analysis State Change events to update the state of the workflow in our service.
+This is handled by the Execution Manager.
+We then parse `Icav2WesAnalysisStateChange` events from the ICAv2 WES Service to update the state of the workflow in our service and forward any changes as WRU events.
 
-![events-overview](docs/draw-io-exports/sash-pipeline.drawio.svg)
 
 ### Consumed Events
 
 | Name / DetailType             | Source             | Schema Link   | Description                           |
 |-------------------------------|--------------------|---------------|---------------------------------------|
-| `WorkflowRunStateChange`      | `orcabus.any`      | <schema link> | READY statechange // TODO             |
-| `Icav2WesAnalysisStateChange` | `orcabus.icav2wes` | <schema link> | ICAv2 WES Analysis State Change event |
+| `WorkflowRunStateChange`      | `orcabus.workflowmanager` | [WorkflowRunStateChange](https://github.com/OrcaBus/wiki/tree/main/orcabus-platform#workflowrunstatechange) | Source of updates on WorkflowRuns (expected pipeline executions) |
+| `Icav2WesAnalysisStateChange` | `orcabus.icav2wes` | TODO | ICAv2 WES Analysis State Change event |
 
 ### Published Events
 
 | Name / DetailType        | Source         | Schema Link   | Description           |
 |--------------------------|----------------|---------------|-----------------------|
-| `WorkflowRunStateChange` | `orcabus.sash` | <schema link> | Analysis state change |
+| `WorkflowRunUpdate` | `orcabus.sash` | [WorkflowRunUpdate](https://github.com/OrcaBus/wiki/tree/main/orcabus-platform#workflowrunupdate) | Reporting any updates to the pipeline state |
 
-### Ready Event Example
+### DRAFT Event Example (complete)
 
-Ready event minimal example
+DRAFT event minimal complete example that would pass the DRAFT Event Validation and result in a READY event and subsequent pipeline execution.
 
 <details>
 
@@ -73,14 +93,14 @@ Ready event minimal example
 {
   "EventBusName": "OrcaBusMain",
   "Source": "orcabus.manual",
-  "DetailType": "WorkflowRunStateChange",
+  "DetailType": "WorkflowRunUpdate",
   "Detail": {
-    "status": "READY",
+    "status": "DRAFT",
     "timestamp": "2025-08-06T04:39:31Z",
-    "workflowName": "oncoanalyser-wgts-dna",
+    "workflowName": "sash",
     "workflowVersion": "2.1.0",
-    "workflowRunName": "umccr--automated--oncoanalyser-wgts-dna--2-1-0--20250606abcd6789",
-    "portalRunId": "20250606abcd6789", // pragma: allowlist secret
+    "workflowRunName": "umccr--automated--sash--2-1-0--20250606abcd6789",
+    "portalRunId": "20250606abcd1234",  // pragma: allowlist secret
     "linkedLibraries": [
       {
         "orcabusId": "lib.01JBB5Y3GAN479FC5MJG19HPJM",
@@ -113,7 +133,7 @@ Ready event minimal example
           "normalDnaSampleId": "L2401540",
           "dragenSomaticDir": "s3://pipeline-dev-cache-503977275616-ap-southeast-2/byob-icav2/development/analysis/dragen-wgts-dna/20250809cee5b43a/L2401541__L2401540__hg38__linear__dragen_variant_calling/",
           "dragenGermlineDir": "s3://pipeline-dev-cache-503977275616-ap-southeast-2/byob-icav2/development/analysis/dragen-wgts-dna/20250809cee5b43a/L2401540__hg38__graph__dragen_variant_calling/",
-          "oncoanalyserDnaDir": "s3://pipeline-dev-cache-503977275616-ap-southeast-2/byob-icav2/development/analysis/oncoanalyser-wgts-dna/202508052e398fe8/SBJ05828/",
+          "oncoanalyserDnaDir": "s3://pipeline-dev-cache-503977275616-ap-southeast-2/byob-icav2/development/analysis/sash/202508052e398fe8/SBJ05828/",
           "refDataPath": "s3://pipeline-prod-cache-503977275616-ap-southeast-2/byob-icav2/reference-data/sash/0.6.0/"
         }
       }
@@ -125,340 +145,36 @@ Ready event minimal example
 </details>
 
 
-#### Making your own draft events with BASH / JQ (dev)
-
-There may be circumstances where you wish to generate WRSC events manually, the below is a quick solution for
-generating a draft for a somatic oncoanalyser wgts dna workflow. Omit setting the TUMOR_LIBRARY_ID variable for running a germline
-only workflow.
-
-The draft populator step function will also pull necessary fastq files out of archive.
-
-<details>
-
-<summary>Click to expand</summary>
-
-```shell
-# Globals
-EVENT_BUS_NAME="OrcaBusMain"
-DETAIL_TYPE="WorkflowRunUpdate"
-SOURCE="orcabus.manual"
-
-WORKFLOW_NAME="sash"
-WORKFLOW_VERSION="0.6.1"
-EXECUTION_ENGINE="ICA"
-CODE_VERSION="7c92315f"
-
-PAYLOAD_VERSION="2025.08.05"
-
-# Glocals
-LIBRARY_ID="L2300950"
-TUMOR_LIBRARY_ID="L2300943"
-
-# Functions
-get_hostname_from_ssm(){
-  aws ssm get-parameter \
-    --name "/hosted_zone/umccr/name" \
-    --output json | \
-  jq --raw-output \
-    '.Parameter.Value'
-}
-
-get_orcabus_token(){
-  aws secretsmanager get-secret-value \
-    --secret-id orcabus/token-service-jwt \
-    --output json \
-    --query SecretString | \
-  jq --raw-output \
-    'fromjson | .id_token'
-}
-
-get_pipeline_id_from_workflow_version(){
-  local workflow_version="$1"
-  aws ssm get-parameter \
-    --name "/orcabus/workflows/sash/pipeline-ids-by-workflow-version/${workflow_version}" \
-    --output json | \
-  jq --raw-output \
-    '.Parameter.Value'
-}
-
-get_library_obj_from_library_id(){
-  local library_id="$1"
-  curl --silent --fail --show-error --location \
-    --header "Authorization: Bearer $(get_orcabus_token)" \
-    --url "https://metadata.$(get_hostname_from_ssm)/api/v1/library?libraryId=${library_id}" | \
-  jq --raw-output \
-    '
-      .results[0] |
-      {
-        "libraryId": .libraryId,
-        "orcabusId": .orcabusId
-      }
-    '
-}
-
-generate_portal_run_id(){
-  echo "$(date -u +'%Y%m%d')$(openssl rand -hex 4)"
-}
-
-get_linked_libraries(){
-  local library_id="$1"
-  local tumor_library_id="${2-}"
-
-  linked_library_obj=$(get_library_obj_from_library_id "$library_id")
-
-  if [ -n "$tumor_library_id" ]; then
-    tumor_linked_library_obj=$(get_library_obj_from_library_id "$tumor_library_id")
-  else
-    tumor_linked_library_obj="{}"
-  fi
-
-  jq --null-input --compact-output --raw-output \
-    --argjson libraryObj "$linked_library_obj" \
-    --argjson tumorLibraryObj "$tumor_linked_library_obj" \
-    '
-      [
-          $libraryObj,
-          $tumorLibraryObj
-      ] |
-      # Filter out empty values, tumorLibraryId is optional
-      # Then write back to JSON
-      map(select(length > 0))
-    '
-}
-
-get_workflow(){
-  local workflow_name="$1"
-  local workflow_version="$2"
-  local execution_engine="$3"
-  local execution_engine_pipeline_id="$4"
-  local code_version="$5"
-  curl --silent --fail --show-error --location \
-    --request GET \
-    --get \
-    --header "Authorization: Bearer $(get_orcabus_token)" \
-    --url "https://workflow.$(get_hostname_from_ssm)/api/v1/workflow" \
-    --data "$( \
-      jq \
-       --null-input --compact-output --raw-output \
-       --arg workflowName "$workflow_name" \
-       --arg workflowVersion "$workflow_version" \
-       --arg executionEngine "$execution_engine" \
-       --arg executionEnginePipelineId "$execution_engine_pipeline_id" \
-       --arg codeVersion "$code_version" \
-       '
-         {
-            "name": $workflowName,
-            "version": $workflowVersion,
-            "executionEngine": $executionEngine,
-            "executionEnginePipelineId": $executionEnginePipelineId,
-            "codeVersion": $codeVersion
-         } |
-         to_entries |
-         map(
-           "\(.key)=\(.value)"
-         ) |
-         join("&")
-       ' \
-    )" | \
-  jq --compact-output --raw-output \
-    '
-      .results[0]
-    '
-}
-
-# Generate the event
-event_cli_json="$( \
-  jq --null-input --raw-output \
-    --arg eventBusName "$EVENT_BUS_NAME" \
-    --arg detailType "$DETAIL_TYPE" \
-    --arg source "$SOURCE" \
-    --argjson workflow "$(get_workflow \
-      "${WORKFLOW_NAME}" "${WORKFLOW_VERSION}" \
-      "${EXECUTION_ENGINE}" "$(get_pipeline_id_from_workflow_version "${WORKFLOW_VERSION}")" \
-      "${CODE_VERSION}"
-    )" \
-    --arg payloadVersion "$PAYLOAD_VERSION" \
-    --arg portalRunId "$(generate_portal_run_id)" \
-    --argjson libraries "$(get_linked_libraries "${LIBRARY_ID}" "${TUMOR_LIBRARY_ID}")" \
-    '
-      {
-        # Standard fields for the event
-        "EventBusName": $eventBusName,
-        "DetailType": $detailType,
-        "Source": $source,
-        # Detail must be a JSON object in string format
-        "Detail": (
-          {
-            "status": "DRAFT",
-            "timestamp": (now | todateiso8601),
-            "workflow": $workflow,
-            "workflowRunName": ("umccr--automated--" + $workflow["name"] + "--" + ($workflow["version"] | gsub("\\."; "-")) + "--" + $portalRunId),
-            "portalRunId": $portalRunId,
-            "libraries": $libraries
-          } |
-          tojson
-        )
-      } |
-      # Now wrap into an "entry" for the CLI
-      {
-        "Entries": [
-          .
-        ]
-      }
-    ' \
-)"
-
-aws events put-events --no-cli-pager --cli-input-json "${event_cli_json}"
-```
-
-</details>
-
-#### Making your own draft events with BASH / JQ (prod)
-
-There may be circumstances where you wish to generate WRSC events manually, the below is a quick solution for
-generating a draft for a somatic oncoanalyser wgts dna/rna workflow.
-
-<details>
-
-<summary>Click to expand</summary>
-
-```shell
-# Globals
-EVENT_BUS_NAME="OrcaBusMain"
-DETAIL_TYPE="WorkflowRunUpdate"
-SOURCE="orcabus.manual"
-
-WORKFLOW_NAME="sash"
-WORKFLOW_VERSION="0.6.1"
-
-PAYLOAD_VERSION="2025.08.05"
-
-# Glocals
-LIBRARY_ID="L2301217"
-TUMOR_LIBRARY_ID="L2301218"
-
-# Functions
-get_hostname_from_ssm(){
-  aws ssm get-parameter \
-    --name "/hosted_zone/umccr/name" \
-    --output json | \
-  jq --raw-output \
-    '.Parameter.Value'
-}
-
-get_orcabus_token(){
-  aws secretsmanager get-secret-value \
-    --secret-id orcabus/token-service-jwt \
-    --output json \
-    --query SecretString | \
-  jq --raw-output \
-    'fromjson | .id_token'
-}
-
-get_pipeline_id_from_workflow_version(){
-  local workflow_version="$1"
-  aws ssm get-parameter \
-    --name "/orcabus/workflows/sash/pipeline-ids-by-workflow-version/${workflow_version}" \
-    --output json | \
-  jq --raw-output \
-    '.Parameter.Value'
-}
-
-get_library_obj_from_library_id(){
-  local library_id="$1"
-  curl --silent --fail --show-error --location \
-    --header "Authorization: Bearer $(get_orcabus_token)" \
-    --url "https://metadata.$(get_hostname_from_ssm)/api/v1/library?libraryId=${library_id}" | \
-  jq --raw-output \
-    '
-      .results[0] |
-      {
-        "libraryId": .libraryId,
-        "orcabusId": .orcabusId
-      }
-    '
-}
-
-generate_portal_run_id(){
-  echo "$(date -u +'%Y%m%d')$(openssl rand -hex 4)"
-}
-
-get_linked_libraries(){
-  local library_id="$1"
-  local tumor_library_id="${2-}"
-
-  linked_library_obj=$(get_library_obj_from_library_id "$library_id")
-
-  if [ -n "$tumor_library_id" ]; then
-    tumor_linked_library_obj=$(get_library_obj_from_library_id "$tumor_library_id")
-  else
-    tumor_linked_library_obj="{}"
-  fi
-
-  jq --null-input --compact-output --raw-output \
-    --argjson libraryObj "$linked_library_obj" \
-    --argjson tumorLibraryObj "$tumor_linked_library_obj" \
-    '
-      [
-          $libraryObj,
-          $tumorLibraryObj
-      ] |
-      # Filter out empty values, tumorLibraryId is optional
-      # Then write back to JSON
-      map(select(length > 0))
-    '
-}
-
-# Generate the event
-event_cli_json="$( \
-  jq --null-input --raw-output \
-    --arg eventBusName "$EVENT_BUS_NAME" \
-    --arg detailType "$DETAIL_TYPE" \
-    --arg source "$SOURCE" \
-    --arg workflowName "${WORKFLOW_NAME}" \
-    --arg workflowVersion "${WORKFLOW_VERSION}" \
-    --arg payloadVersion "$PAYLOAD_VERSION" \
-    --arg portalRunId "$(generate_portal_run_id)" \
-    --argjson libraries "$(get_linked_libraries "${LIBRARY_ID}" "${TUMOR_LIBRARY_ID}")" \
-    '
-      {
-        # Standard fields for the event
-        "EventBusName": $eventBusName,
-        "DetailType": $detailType,
-        "Source": $source,
-        # Detail must be a JSON object in string format
-        "Detail": (
-          {
-            "status": "DRAFT",
-            "timestamp": (now | todateiso8601),
-            "workflowName": $workflowName,
-            "workflowVersion": $workflowVersion,
-            "workflowRunName": ("umccr--automated--" + $workflowName + "--" + ($workflowVersion | gsub("\\."; "-")) + "--" + $portalRunId),
-            "portalRunId": $portalRunId,
-            "linkedLibraries": $libraries
-          } |
-          tojson
-        )
-      } |
-      # Now wrap into an "entry" for the CLI
-      {
-        "Entries": [
-          .
-        ]
-      }
-    ' \
-)"
-
-aws events put-events --no-cli-pager --cli-input-json "${event_cli_json}"
-```
-
-</details>
-
 #### Manually Validating Schemas :construction:
 
 We have generated JSON Schemas for the complete draft event which you can find in the [`./app/event-schemas`](app/event-schemas) directory.
 
 You can interactively check if your DRAFT or READY event matches the schema using the following links: :construction:
+
+
+
+#### Making your own DRAFT WRU events with BASH / JQ (new system)
+
+There may be circumstances where you wish to generate DRAFT events manually, e.g. to explicitly trigger a workflow execution where automation failed or is not available. The below is a quick solution for generating a DRAFT event for a somatic SASH workflow. Omit setting the `TUMOR_LIBRARY_ID` variable for running a germline
+only workflow.
+
+> [!NOTE]
+> This is a minimal example. It assumes that the rest of the required information can be retrieved and filled by the DRAFT Event Populator.
+
+The DRAFT Event Populator will also pull necessary fastq files out of archive.
+
+For details, see [PM.S.1 - Manual Pipeline Execution](./docs/operation/SOP/PM.SH.1/PM.SH.1-ManualPipelineExecution.md)
+
+
+#### Making your own DRAFT WRSC events with BASH / JQ (legacy system)
+
+There may be circumstances where you wish to generate WRSC events manually, the below is a quick solution for
+generating a DRAFT for a SASH workflow. Omit setting the `TUMOR_LIBRARY_ID` variable for running a germline
+only workflow.
+
+The DRAFT populator step function will also pull necessary fastq files out of archive.
+
+For a detailed procedure, see [Manual Pipeline Execution (legacy)](./docs/operation/examples/WRSC-DRAFT/ManualPipelineExecution.md)
 
 
 #### Release management :construction:
