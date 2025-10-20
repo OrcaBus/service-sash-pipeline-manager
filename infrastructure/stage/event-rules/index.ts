@@ -1,6 +1,5 @@
 /* Event Bridge Rules */
 import {
-  // Yet to be utilised
   // BuildDraftRuleProps,
   BuildReadyRuleProps,
   BuildIcav2AnalysisStateChangeRuleProps,

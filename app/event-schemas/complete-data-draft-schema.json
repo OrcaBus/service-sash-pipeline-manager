@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2012-12/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
     "s3Uri": {
       "type": "string",
@@ -112,6 +112,27 @@
         "oncoanalyserDnaDir",
         "refDataPath"
       ]
+    },
+    "engineParameters": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string"
+        },
+        "pipelineId": {
+          "type": "string"
+        },
+        "outputUri": {
+          "$ref": "#/$defs/s3UriDirectory"
+        },
+        "logsUri": {
+          "$ref": "#/$defs/s3UriDirectory"
+        },
+        "cacheUri": {
+          "$ref": "#/$defs/s3UriDirectory"
+        }
+      },
+      "required": ["projectId", "pipelineId", "outputUri", "logsUri", "cacheUri"]
     }
   },
   "type": "object",
@@ -121,7 +142,10 @@
     },
     "inputs": {
       "$ref": "#/$defs/inputs"
+    },
+    "engineParameters": {
+      "$ref": "#/$defs/engineParameters"
     }
   },
-  "required": ["tags", "inputs"]
+  "required": ["tags", "inputs", "engineParameters"]
 }

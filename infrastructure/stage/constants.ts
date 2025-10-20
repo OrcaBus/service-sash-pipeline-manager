@@ -12,13 +12,12 @@ export const EVENT_SCHEMAS_DIR = path.join(APP_ROOT, 'event-schemas');
 /* Workflow constants */
 export const WORKFLOW_NAME = 'sash';
 
-// Yet to implement draft events into this service
 // However, because this workflow has the same workflow name as the
 // existing production workflow, we need to filter on the payload version
 // to prevent the wrong service from being triggered
 export const DEFAULT_PAYLOAD_VERSION = '2025.08.05';
 
-// Yet to implement draft events into this service
+// Default prefixes
 export const WORKFLOW_LOGS_PREFIX = `s3://{__CACHE_BUCKET__}/{__CACHE_PREFIX__}logs/${WORKFLOW_NAME}/`;
 export const WORKFLOW_OUTPUT_PREFIX = `s3://{__CACHE_BUCKET__}/{__CACHE_PREFIX__}analysis/${WORKFLOW_NAME}/`;
 export const WORKFLOW_CACHE_PREFIX = `s3://{__CACHE_BUCKET__}/{__CACHE_PREFIX__}cache/${WORKFLOW_NAME}/`;
@@ -93,13 +92,11 @@ export const DRAGEN_WGTS_DNA_WORKFLOW_NAME = 'dragen-wgts-dna';
 export const ONCOANALYSER_WGTS_DNA_WORKFLOW_NAME = 'oncoanalyser-wgts-dna';
 
 /* Event rule constants */
-// Yet to implement draft events into this service
 export const DRAFT_STATUS = 'DRAFT';
 export const READY_STATUS = 'READY';
 export const SUCCEEDED_STATUS = 'SUCCEEDED';
 
 /* Schema constants */
-// Yet to implement draft events into this service
 export const SCHEMA_REGISTRY_NAME = DATA_SCHEMA_REGISTRY_NAME;
 export const SSM_SCHEMA_ROOT = path.join(SSM_PARAMETER_PATH_PREFIX, 'schemas');
 
