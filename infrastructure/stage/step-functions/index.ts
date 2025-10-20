@@ -101,10 +101,14 @@ function wireUpStateMachinePermissions(props: WireUpPermissionsProps): void {
   /* Wire up lambda permissions */
   const sfnRequirements = stepFunctionsRequirementsMap[props.stateMachineName];
 
+  /* Allow the state machine to invoke the lambda function */
   const lambdaFunctionNamesInSfn = stepFunctionToLambdasMap[props.stateMachineName];
   const lambdaFunctions = props.lambdaObjects.filter((lambdaObject) =>
     lambdaFunctionNamesInSfn.includes(lambdaObject.lambdaName)
   );
+  for (const lambdaObject of lambdaFunctions) {
+    lambdaObject.lambdaFunction.currentVersion.grantInvoke(props.sfnObject);
+  }
 
   // Step functions requirements
   if (sfnRequirements.needsEventPutPermission) {
@@ -134,11 +138,6 @@ function wireUpStateMachinePermissions(props: WireUpPermissionsProps): void {
       ],
       true
     );
-  }
-
-  /* Allow the state machine to invoke the lambda function */
-  for (const lambdaObject of lambdaFunctions) {
-    lambdaObject.lambdaFunction.currentVersion.grantInvoke(props.sfnObject);
   }
 }
 

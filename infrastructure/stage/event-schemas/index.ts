@@ -12,12 +12,6 @@ import { schemaNamesList, BuildSchemaProps } from './interfaces';
 import { Construct } from 'constructs';
 import { camelCaseToKebabCase } from '../utils';
 
-export function buildRegistry(scope: Construct, registryName: string): schemas.CfnRegistry {
-  return new schemas.CfnRegistry(scope, `${registryName}-registry`, {
-    registryName: registryName,
-  });
-}
-
 export function buildSchema(scope: Construct, props: BuildSchemaProps): schemas.CfnSchema {
   // Import the schema file from the schemas directory
   const schemaPath = path.join(
@@ -34,7 +28,7 @@ export function buildSchema(scope: Construct, props: BuildSchemaProps): schemas.
   });
 }
 
-export function buildSchemasAndRegistry(scope: Construct) {
+export function buildSchemas(scope: Construct) {
   // Add an ssm entry for the registry name
   new ssm.StringParameter(scope, `${SCHEMA_REGISTRY_NAME}-ssm`, {
     parameterName: path.join(SSM_SCHEMA_ROOT, 'registry'),

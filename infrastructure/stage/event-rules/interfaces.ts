@@ -7,7 +7,7 @@ export type EventBridgeRuleName =
   // Glue succeeded
   | 'upstreamSucceededEventLegacy'
   | 'upstreamSucceededEvent'
-  // Yet to be implemented
+  // Draft Events
   | 'wrscDraftLegacy'
   | 'wrscDraft'
   // Pre-ready
@@ -20,7 +20,7 @@ export const eventBridgeRuleNameList: EventBridgeRuleName[] = [
   // Pre-draft
   'upstreamSucceededEventLegacy',
   'upstreamSucceededEvent',
-  // Yet to be implemented
+  // Draft Events
   'wrscDraftLegacy',
   'wrscDraft',
   // Pre-ready
