@@ -33,6 +33,7 @@ export const WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP: Record<
   '0.6.1': '5c8d2267-73bc-4923-83ec-15fe1aa6aed9',
   '0.6.2': '5865b1f2-ce78-4fe7-a630-24cb6a55fb88',
   '0.6.3': '5b4060de-5e43-4aa6-b408-f51537d43c65',
+  '0.7.0': 'b0e1873d-2266-489c-a5d7-341c4fde96a4',
 };
 
 export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersionType, string> = {
@@ -41,6 +42,8 @@ export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersio
   '0.6.1': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
   '0.6.2': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
   '0.6.3': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
+  // Add pcgr/20250314/ and pcgr/VEP/ for 0.7.0
+  '0.7.0': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.7.0/',
 };
 
 /* SSM Parameter Paths */
