@@ -7,7 +7,7 @@ SOURCE="orcabus.manual"
 WORKFLOW_NAME="sash"
 WORKFLOW_VERSION="0.6.3"
 EXECUTION_ENGINE="ICA"
-CODE_VERSION="7c92315f"
+CODE_VERSION="89a7a21"
 
 PAYLOAD_VERSION="2025.08.05"
 
@@ -31,15 +31,6 @@ get_orcabus_token(){
     --query SecretString | \
   jq --raw-output \
     'fromjson | .id_token'
-}
-
-get_pipeline_id_from_workflow_version(){
-  local workflow_version="$1"
-  aws ssm get-parameter \
-    --name "/orcabus/workflows/sash/pipeline-ids-by-workflow-version/${workflow_version}" \
-    --output json | \
-  jq --raw-output \
-    '.Parameter.Value'
 }
 
 get_library_obj_from_library_id(){
@@ -91,8 +82,7 @@ get_workflow(){
   local workflow_name="$1"
   local workflow_version="$2"
   local execution_engine="$3"
-  local execution_engine_pipeline_id="$4"
-  local code_version="$5"
+  local code_version="$4"
   curl --silent --fail --show-error --location \
     --request GET \
     --get \
@@ -104,14 +94,12 @@ get_workflow(){
        --arg workflowName "$workflow_name" \
        --arg workflowVersion "$workflow_version" \
        --arg executionEngine "$execution_engine" \
-       --arg executionEnginePipelineId "$execution_engine_pipeline_id" \
        --arg codeVersion "$code_version" \
        '
          {
             "name": $workflowName,
             "version": $workflowVersion,
             "executionEngine": $executionEngine,
-            "executionEnginePipelineId": $executionEnginePipelineId,
             "codeVersion": $codeVersion
          } |
          to_entries |
@@ -135,8 +123,7 @@ event_cli_json="$( \
     --arg source "$SOURCE" \
     --argjson workflow "$(get_workflow \
       "${WORKFLOW_NAME}" "${WORKFLOW_VERSION}" \
-      "${EXECUTION_ENGINE}" "$(get_pipeline_id_from_workflow_version "${WORKFLOW_VERSION}")" \
-      "${CODE_VERSION}"
+      "${EXECUTION_ENGINE}" "${CODE_VERSION}"
     )" \
     --arg payloadVersion "$PAYLOAD_VERSION" \
     --arg portalRunId "$(generate_portal_run_id)" \
