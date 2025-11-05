@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Globals
-DRYRUN=false  # Use --dryrun to set to true
+FORCE=false  # Use --force to set to true
 EVENT_BUS_NAME="OrcaBusMain"
 DETAIL_TYPE="WorkflowRunUpdate"
 SOURCE="orcabus.manual"
@@ -29,7 +29,7 @@ echo_stderr(){
 print_usage(){
   echo "
 generate-WRU-draft.sh [-h | --help]
-generate-WRU-draft.sh [-d | --dryrun] (library_id)...
+generate-WRU-draft.sh [-f | --force] (library_id)...
 
 
 Description:
@@ -37,7 +37,7 @@ Run this script to generate a draft WorkflowRunUpdate event for the specified li
 
 Options:
   -h | --help:		Print this help message and exit.
-  -d | --dryrun:	Don't push the event, instead print the event json to stdout.
+  -f | --force:  	Don't confirm before pushing the event to EventBridge.
   library_id ...:	One or more library IDs to include in the event. Repeat as needed.
 
 Environment:
@@ -45,7 +45,7 @@ Environment:
   AWS_REGION:   (Optional) The AWS region to use for AWS CLI commands.
 
 Example usage:
-bash generate-WRU-draft.sh --dryrun tumor_library_id normal_library_id
+bash generate-WRU-draft.sh tumor_library_id normal_library_id
 "
 }
 
@@ -132,8 +132,8 @@ get_workflow(){
 # Get args
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -d|--dryrun)
-      DRYRUN=true
+    -f|--force)
+      FORCE=true
       shift
       ;;
     -h|--help)
@@ -167,28 +167,39 @@ event_cli_json="$( \
         "DetailType": $detailType,
         "Source": $source,
         # Detail must be a JSON object in string format
-        "Detail": (
-          {
+        "Detail": {
             "status": "DRAFT",
             "timestamp": (now | todateiso8601),
             "workflow": $workflow,
             "workflowRunName": ("umccr--automated--" + $workflow["name"] + "--" + ($workflow["version"] | gsub("\\."; "-")) + "--" + $portalRunId),
             "portalRunId": $portalRunId,
             "libraries": $libraries
-          } |
-          tojson
-        )
-      } |
-      # Now wrap into an "entry" for the CLI
-      {
-        "Entries": [
-          .
-        ]
+          }
       }
     ' \
 )"
 
-case $DRYRUN in
-  (true)    echo "${event_cli_json}";;
-  (false)   aws events put-events --no-cli-pager --cli-input-json "${event_cli_json}";;
-esac
+# Confirm before pushing the event
+if [[ "${FORCE}" == "false" ]]; then
+	echo_stderr "Generated the following WorkflowRunUpdate event draft:"
+	jq --raw-output <<< "${event_cli_json}"
+
+	read -r -p 'Confirm to push this event to EventBridge? (y/n): ' confirm_push
+	if [[ ! "${confirm_push}" =~ ^[Yy]$ ]]; then
+	  echo_stderr "Aborting event push."
+	  exit 1
+	fi
+fi
+
+# Push the event to EventBridge
+aws events put-events \
+  --no-cli-pager \
+  --cli-input-json "$( \
+  	jq --raw-output \
+  	  '
+  	    ( .Detail = (.Detail | tojson) ) |
+  	    {
+		  "Entries": [ . ]
+	    }
+  	  ' <<< "${event_cli_json}" \
+  )"
