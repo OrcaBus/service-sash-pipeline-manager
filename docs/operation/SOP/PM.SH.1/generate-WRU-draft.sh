@@ -87,7 +87,7 @@ generate_portal_run_id(){
 
 get_linked_libraries(){
   for library_id in "${LIBRARY_ID_ARRAY[@]}"; do
-	get_library_obj_from_library_id "${library_id}"
+    get_library_obj_from_library_id "${library_id}"
   done | \
   jq --slurp --raw-output --compact-output
 }
@@ -132,18 +132,18 @@ get_workflow(){
 # Get args
 while [[ $# -gt 0 ]]; do
   case "$1" in
-	-d|--dryrun)
-	  DRYRUN=true
-	  shift
-	  ;;
-	-h|--help)
-	  print_usage
-	  exit 0
-	  ;;
-	*)
-	  LIBRARY_ID_ARRAY+=("$1")
-	  shift
-	  ;;
+    -d|--dryrun)
+      DRYRUN=true
+      shift
+      ;;
+    -h|--help)
+      print_usage
+      exit 0
+      ;;
+    *)
+      LIBRARY_ID_ARRAY+=("$1")
+      shift
+      ;;
   esac
 done
 
