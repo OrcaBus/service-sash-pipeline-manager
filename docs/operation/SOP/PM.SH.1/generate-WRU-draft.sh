@@ -1,21 +1,54 @@
+#!/usr/bin/env bash
+
+# Set to fail
+set -euo pipefail
+
 # Globals
-DRYRUN=true
+DRYRUN=false  # Use --dryrun to set to true
 EVENT_BUS_NAME="OrcaBusMain"
 DETAIL_TYPE="WorkflowRunUpdate"
 SOURCE="orcabus.manual"
 
+# Workflow details
 WORKFLOW_NAME="sash"
 WORKFLOW_VERSION="0.6.3"
 EXECUTION_ENGINE="ICA"
 CODE_VERSION="89a7a21"
 
+# Payload details
 PAYLOAD_VERSION="2025.08.05"
 
-# Glocals
-LIBRARY_ID=""       # e.g. L2300950
-TUMOR_LIBRARY_ID="" # e.g. L2300943
+# Library id array
+LIBRARY_ID_ARRAY=()
 
 # Functions
+echo_stderr(){
+  echo "$(date -Iseconds)" "$@" >&2
+}
+
+print_usage(){
+  echo "
+generate-WRU-draft.sh [-h | --help]
+generate-WRU-draft.sh [-d | --dryrun] (library_id)...
+
+
+Description:
+Run this script to generate a draft WorkflowRunUpdate event for the specified library IDs.
+
+Options:
+  -h | --help:		Print this help message and exit.
+  -d | --dryrun:	Don't push the event, instead print the event json to stdout.
+  library_id ...:	One or more library IDs to include in the event. Repeat as needed.
+
+Environment:
+  AWS_PROFILE:  (Optional) The AWS CLI profile to use for authentication.
+  AWS_REGION:   (Optional) The AWS region to use for AWS CLI commands.
+
+Example usage:
+bash generate-WRU-draft.sh --dryrun tumor_library_id normal_library_id
+"
+}
+
 get_hostname_from_ssm(){
   aws ssm get-parameter \
     --name "/hosted_zone/umccr/name" \
@@ -53,29 +86,10 @@ generate_portal_run_id(){
 }
 
 get_linked_libraries(){
-  local library_id="$1"
-  local tumor_library_id="${2-}"
-
-  linked_library_obj=$(get_library_obj_from_library_id "$library_id")
-
-  if [ -n "$tumor_library_id" ]; then
-    tumor_linked_library_obj=$(get_library_obj_from_library_id "$tumor_library_id")
-  else
-    tumor_linked_library_obj="{}"
-  fi
-
-  jq --null-input --compact-output --raw-output \
-    --argjson libraryObj "$linked_library_obj" \
-    --argjson tumorLibraryObj "$tumor_linked_library_obj" \
-    '
-      [
-          $libraryObj,
-          $tumorLibraryObj
-      ] |
-      # Filter out empty values, tumorLibraryId is optional
-      # Then write back to JSON
-      map(select(length > 0))
-    '
+  for library_id in "${LIBRARY_ID_ARRAY[@]}"; do
+	get_library_obj_from_library_id "${library_id}"
+  done | \
+  jq --slurp --raw-output --compact-output
 }
 
 get_workflow(){
@@ -115,6 +129,24 @@ get_workflow(){
     '
 }
 
+# Get args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+	-d|--dryrun)
+	  DRYRUN=true
+	  shift
+	  ;;
+	-h|--help)
+	  print_usage
+	  exit 0
+	  ;;
+	*)
+	  LIBRARY_ID_ARRAY+=("$1")
+	  shift
+	  ;;
+  esac
+done
+
 # Generate the event
 event_cli_json="$( \
   jq --null-input --raw-output \
@@ -127,7 +159,7 @@ event_cli_json="$( \
     )" \
     --arg payloadVersion "$PAYLOAD_VERSION" \
     --arg portalRunId "$(generate_portal_run_id)" \
-    --argjson libraries "$(get_linked_libraries "${LIBRARY_ID}" "${TUMOR_LIBRARY_ID}")" \
+    --argjson libraries "$(get_linked_libraries)" \
     '
       {
         # Standard fields for the event

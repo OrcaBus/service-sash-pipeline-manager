@@ -32,15 +32,11 @@ To initiate a pipeline execution we need to generate an initial DRAFT event. For
 For convenience we provide a shell script that generates and optionally submits an appropriate event.
 
 - familiarise yourself with the script: [generate-WRU-draft.sh](./generate-WRU-draft.sh)
-  - especially check the settings in the `Globals` section
-    - ensure the values are fit for your use case, e.g. for clinical samples match the accredited pipeline details
-- in the `Glocals` section provide the Library IDs
-  - set `LIBRARY_ID` to the Library ID of your normal / germline sample
-  - set `TUMOR_LIBRARY_ID` to the Library ID of your matching tumor sample
-    - the tumor can be omitted for germline only execution mode
+  - you may run the script with `bash generate-WRU-draft.sh -h` to see the available options
 - execute the script (e.g. `bash generate-WRU-draft.sh`)
-  - Note: AWS credentials need to set on the environment
-  - make sure the `DRYRUN` variable at the start of the script is set to `true`
+  - Ensure you use `-d` or `--dryrun` flag for the initial run to check the generated DRAFT event looks correct.
+  - Ensure you have added the correct library ids as positional arguments to the script.
+  - Note: AWS credentials need to set on the environment.
 - the script should produce the JSON output of the DRAFT event. This should be used to ensure it reflects the intended request
   - take note of the generated `workflowRunName` or `portalRunId`
 - if the DRAFT event is correct, update the `DRYRUN` variable to `false` and run the script again
