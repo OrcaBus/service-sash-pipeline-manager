@@ -147,18 +147,26 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Generate the portal run id
+portal_run_id="$(generate_portal_run_id)"
+echo_stderr "Generated portalRunId: ${portal_run_id}"
+
+# Get the workflow object
+workflow="$(get_workflow \
+	"${WORKFLOW_NAME}" "${WORKFLOW_VERSION}" \
+	"${EXECUTION_ENGINE}" "${CODE_VERSION}"
+)"
+echo_stderr "Using workflow: $(jq --raw-output '.orcabusId' <<< "${workflow}")"
+
 # Generate the event
 event_cli_json="$( \
   jq --null-input --raw-output \
     --arg eventBusName "$EVENT_BUS_NAME" \
     --arg detailType "$DETAIL_TYPE" \
     --arg source "$SOURCE" \
-    --argjson workflow "$(get_workflow \
-      "${WORKFLOW_NAME}" "${WORKFLOW_VERSION}" \
-      "${EXECUTION_ENGINE}" "${CODE_VERSION}"
-    )" \
+    --argjson "${workflow}"  \
     --arg payloadVersion "$PAYLOAD_VERSION" \
-    --arg portalRunId "$(generate_portal_run_id)" \
+    --arg portalRunId "${portal_run_id}" \
     --argjson libraries "$(get_linked_libraries)" \
     '
       {
@@ -171,7 +179,7 @@ event_cli_json="$( \
             "status": "DRAFT",
             "timestamp": (now | todateiso8601),
             "workflow": $workflow,
-            "workflowRunName": ("umccr--automated--" + $workflow["name"] + "--" + ($workflow["version"] | gsub("\\."; "-")) + "--" + $portalRunId),
+            "workflowRunName": ("umccr--manual--" + $workflow["name"] + "--" + ($workflow["version"] | gsub("\\."; "-")) + "--" + $portalRunId),
             "portalRunId": $portalRunId,
             "libraries": $libraries
           }
@@ -182,7 +190,7 @@ event_cli_json="$( \
 # Confirm before pushing the event
 if [[ "${FORCE}" == "false" ]]; then
 	echo_stderr "Generated the following WorkflowRunUpdate event draft:"
-	jq --raw-output <<< "${event_cli_json}"
+	jq --raw-output <<< "${event_cli_json}" 1>&2
 
 	read -r -p 'Confirm to push this event to EventBridge? (y/n): ' confirm_push
 	if [[ ! "${confirm_push}" =~ ^[Yy]$ ]]; then
@@ -192,6 +200,7 @@ if [[ "${FORCE}" == "false" ]]; then
 fi
 
 # Push the event to EventBridge
+echo_stderr "Pushing the draft event for portalRunId ${portal_run_id} to the EventBridge"
 aws events put-events \
   --no-cli-pager \
   --cli-input-json "$( \
