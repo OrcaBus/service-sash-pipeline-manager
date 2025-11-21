@@ -353,8 +353,8 @@ attempts=0
 while :; do
   # Check if we've exceeded max attempts
   if [[ "${attempts}" -ge "${max_attempts}" ]]; then
-	echo_stderr "Exceeded maximum attempts (${max_attempts}) to check for workflow run registration"
-	exit 1
+    echo_stderr "Exceeded maximum attempts (${max_attempts}) to check for workflow run registration"
+    exit 1
   fi
 
   workflow_run_object="$( \
@@ -369,7 +369,7 @@ while :; do
   else
     echo_stderr "Workflow run not yet registered, waiting 10 seconds..."
     sleep 10
-	attempts="$((attempts + 1))"
+    attempts="$((attempts + 1))"
   fi
 
 done
