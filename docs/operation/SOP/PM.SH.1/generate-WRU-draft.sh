@@ -59,7 +59,7 @@ Environment:
 Example usage:
 bash generate-WRU-draft.sh tumor_library_id normal_library_id
 bash generate-WRU-draft.sh tumor_library_id normal_library_id \\
-  --output-uri-prefix s3://project-bucket/analysis/sash// \\
+  --output-uri-prefix s3://project-bucket/analysis/sash/ \\
   --logs-uri-prefix s3://project-bucket/logs/sash/ \\
   --cache-uri-prefix s3://project-bucket/cache/sash/ \\
   --project-id project-uuid-1234-abcd
