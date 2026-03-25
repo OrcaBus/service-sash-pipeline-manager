@@ -71,6 +71,25 @@ def handler(event, context):
 
     # Filter to workflow state if provided
     if workflow_status is not None:
+        # We need to make sure that we dont have any workflows that are still running
+        # That were started AFTER the last succeeded one
+        if (
+                workflow_status == 'SUCCEEDED' and
+                len(list(workflows_list)) > 1
+        ):
+            # We need to make sure that we dont have any workflows that are still running
+            # That were started AFTER the last succeeded one
+            if (
+                    sorted(
+                        workflows_list,
+                        key=lambda workflow_iter_: workflow_iter_['orcabusId'],
+                        reverse=True
+                    )[0]['currentState']['status'] != workflow_status
+            ):
+                return {
+                    "workflowRunObject": None
+                }
+
         workflows_list = list(filter(
             lambda workflow_iter_: workflow_iter_['currentState']['status'] == workflow_status,
             workflows_list
