@@ -19,7 +19,7 @@ function buildLambda(scope: Construct, props: LambdaInput): LambdaObject {
   // Create the lambda function
   const lambdaFunction = new PythonUvFunction(scope, props.lambdaName, {
     entry: path.join(LAMBDA_DIR, lambdaNameToSnakeCase + '_py'),
-    runtime: lambda.Runtime.PYTHON_3_12,
+    runtime: lambda.Runtime.PYTHON_3_14,
     architecture: lambda.Architecture.ARM_64,
     index: lambdaNameToSnakeCase + '.py',
     handler: 'handler',
