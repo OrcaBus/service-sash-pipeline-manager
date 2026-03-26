@@ -16,6 +16,12 @@ from orcabus_api_tools.workflow import (
 from orcabus_api_tools.workflow.models import WorkflowRunDetail
 from orcabus_api_tools.workflow import get_workflows_from_analysis_run_id
 
+# Globals
+TERMINAL_DEPRECATED_STATES = [
+    'DEPRECATED',
+    'RESOLVED'
+]
+
 
 def handler(event, context):
     """
@@ -54,7 +60,7 @@ def handler(event, context):
                 lambda library_iter_: library_iter_['libraryId'],
                 libraries
             )
-        ))
+            ))
 
     # Now we have our workflows, filter to the correct workflow name (and version if provided)
     workflows_list = list(filter(
@@ -65,12 +71,38 @@ def handler(event, context):
     # Filter to workflow version if provided
     if workflow_version is not None:
         workflows_list = list(filter(
-            lambda workflow_iter_: get_workflow_run(workflow_iter_['orcabusId'])['workflow']['version'] == workflow_version,
+            lambda workflow_iter_: get_workflow_run(workflow_iter_['orcabusId'])['workflow'][
+                                       'version'] == workflow_version,
             workflows_list
         ))
 
     # Filter to workflow state if provided
     if workflow_status is not None:
+        # We need to make sure that we dont have any workflows that are still running
+        # That were started AFTER the last succeeded one
+        if (
+                workflow_status == 'SUCCEEDED' and
+                len(workflows_list) > 1
+        ):
+            # First remove DEPRECATED / RESOLVED runs from the list
+            # Since the most recent appropriate run registered may not be the last
+            workflows_list = list(filter(
+                lambda workflow_run_iter: workflow_run_iter['currentState']['status'] not in TERMINAL_DEPRECATED_STATES,
+                workflows_list
+            ))
+
+            # Now check the latest workflow is SUCCEEDED
+            if not (
+                    sorted(
+                        workflows_list,
+                        key=lambda workflow_iter_: workflow_iter_['orcabusId'],
+                        reverse=True
+                    )[0]['currentState']['status'] == workflow_status
+            ):
+                return {
+                    "workflowRunObject": None
+                }
+
         workflows_list = list(filter(
             lambda workflow_iter_: workflow_iter_['currentState']['status'] == workflow_status,
             workflows_list
@@ -89,7 +121,6 @@ def handler(event, context):
             reverse=True
         )[0]
     }
-
 
 # if __name__ == "__main__":
 #     import json
