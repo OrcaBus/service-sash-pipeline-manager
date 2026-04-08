@@ -15,6 +15,7 @@ CACHE_URI_PREFIX=""
 PROJECT_ID=""
 COMMENT=""  # Use -c or --comment to set a comment to be added to the payload
 SAVE_DRAFT_PAYLOAD=""
+INPUT_DATA_FILE=""
 
 # Workflow constants
 WORKFLOW_NAME="sash"
@@ -50,7 +51,7 @@ print_usage(){
     echo_stderr "ERROR: Couldn't get hostname var from AWS, ensure you're logged into AWS"
   fi
   if [[ -z "${hostname}" ]]; then
-	hostname="<aws_account_prefix>.umccr.org"
+    hostname="<aws_account_prefix>.umccr.org"
   fi
 
   # Print usage
@@ -64,9 +65,10 @@ generate-WRU-draft.sh (library_id)...
                       [-t | --cache-uri-prefix <s3_uri>]
                       [-p | --project-id <project_id>]
                       [-s | --analysis-storage-size <analysis_storage_size>]
-					  [--save-draft-payload <output_file>]
+                      [--save-draft-payload <output_file>]
                       [--workflow-version <workflow_version>]
                       [--code-version <code_version>]
+                      [--input-data <input_data_path>]
 
 Description:
 Run this script to generate a draft WorkflowRunUpdate event for the specified library IDs.
@@ -79,6 +81,16 @@ You will also need to ensure that the ICA pipeline ID attributed to the workflow
 available in the ICA project id specified.
 
 The output uri prefix, cache uri and logs uri prefixes must be set to a location inside the s3 prefix that the ICA project is mounted on.
+
+Input data note:
+The populate draft data service will try to auto-populate inputs based on the information it already has.
+This may have unintended consequences if there exists two downstream analyses and you want inputs from one specific analysis.
+In this circumstance it is recommended to use the '--input-data <json_file>' to generate an existing data object to populate, for example:
+{
+  \"inputs\": {
+    \"dragenSomaticDir\": \"s3://path/to/specific/dragen-somatic-directory/\"
+  }
+}
 
 Positional arguments:
   library_id:   One or more library IDs to link to the WorkflowRunUpdate event.
@@ -96,6 +108,9 @@ Keyword arguments:
   --save-draft-payload=<output_file>            (Optional) Save the generated draft event to local file <output_file> after pushing to event bridge for record purposes.
   --workflow-version=<workflow_version>         (Optional) Override the default workflow version.
   --code-version=<code_version>                 (Optional) Override the default code version.
+  --input-data=<input_data_file>                (Optional) Add existing input data to the data section of the payload.
+                                                           This might be used to explicitly set input files
+                                                           See input data note for more information.
 
 Environment:
   PORTAL_TOKEN: (Required) Your personal portal token from https://portal.${hostname}/
@@ -135,17 +150,27 @@ compare_script_version_to_repo(){
   Compare the version of this script to the version in the repo, and print a warning if they are different
   '
   repo_script_version="$( \
-	curl --silent --fail --location --show-error \
-	  --url "https://raw.githubusercontent.com/${GITHUB_REPO}/refs/heads/main/${THIS_SCRIPT_PATH}" | \
-	(
-		grep -m1 "SOP_VERSION" | \
-		cut -d'"' -f2
-	) || echo "unknown"
+    # Read the document from the main branch
+    curl --silent --fail --location --show-error \
+      --header "Accept: text/html" \
+      --url "https://raw.githubusercontent.com/${GITHUB_REPO}/refs/heads/main/${THIS_SCRIPT_PATH}" | \
+    ( \
+      # Read through the whole document to prevent curl erroring out
+      tac | tac \
+    ) | \
+    (
+      # Get the first occurrence with grep -m1 (SOP_VERSION="YYYY.MM.DD")
+      # Remove the SOP_VERSION= prefix ("YYYY.MM.DD")
+      # Remove quotes (YYYY.MM.DD)
+      grep -m1 "SOP_VERSION" | \
+      sed 's/^SOP_VERSION=//' | \
+      jq --raw-output
+    ) \
   )"
 
   if [[ "${SOP_VERSION}" != "${repo_script_version}" ]]; then
-	echo_stderr "Warning: This script version (${SOP_VERSION}) is different from the version in the repo (${repo_script_version})."
-	echo_stderr "Warning: Consider refetching this script from https://github.com/${GITHUB_REPO}/blob/main/${THIS_SCRIPT_PATH}"
+    echo_stderr "Warning: This script version (${SOP_VERSION}) is different from the version in the repo (${repo_script_version})."
+    echo_stderr "         Consider refetching this script from https://github.com/${GITHUB_REPO}/blob/main/${THIS_SCRIPT_PATH}"
   fi
 }
 
@@ -156,7 +181,7 @@ check_binaries(){
   for binary in aws semver jq curl openssl awk; do
     if ! command -v "${binary}" > /dev/null 2>&1; then
       echo_stderr "Error: ${binary} is not installed. Please install ${binary} and try again. Exiting."
-      exit 1
+      return 1
     fi
   done
 
@@ -164,26 +189,26 @@ check_binaries(){
   jq_version="$(jq --version | cut -d'-' -f2)"
   if [[ "${jq_version}" =~ ^1.\d$ && ! "${jq_version}" == "1.7" ]]; then
     echo_stderr "Error: jq version 1.7 or higher is required. Please update jq and try again. Exiting."
-    exit 1
+    return 1
   fi
   # After version 1.7, jq changed their versioning to semver, so we can use semver to compare versions
   if [[ ! "$(semver compare "${jq_version}" "${MIN_REQUIREMENTS["jq"]}")" -ge 0 ]]; then
     echo_stderr "Error: jq version ${MIN_REQUIREMENTS["jq"]} or higher is required. Please update jq and try again. Exiting."
-    exit 1
+    return 1
   fi
 
   # Check aws cli version is 2.0.0 or higher, as we use the --cli-binary-format option which was added in 2.0.0
   aws_version="$(aws --version 2>&1 | awk '{print $1}' | cut -d'/' -f2)"
   if [[ ! "$(semver compare "${aws_version}" "${MIN_REQUIREMENTS["aws"]}")" -ge 0 ]]; then
     echo_stderr "Error: AWS CLI version ${MIN_REQUIREMENTS["aws"]} or higher is required. Please update AWS CLI and try again. Exiting."
-    exit 1
+    return 1
   fi
 
   # Check curl version is 7.76.0 or higher, as we use the --fail-with-body option which was added in 7.76.0
   curl_version="$(curl --version | head -n1 | awk '{print $2}')"
   if [[ ! "$(semver compare "${curl_version}" "${MIN_REQUIREMENTS["curl"]}")" -ge 0 ]]; then
     echo_stderr "Error: curl version ${MIN_REQUIREMENTS["curl"]} or higher is required. Please update curl and try again. Exiting."
-    exit 1
+    return 1
   fi
 }
 
@@ -211,18 +236,30 @@ get_email_from_portal_token(){
 }
 
 get_hostname_from_ssm(){
-  # Cache the hostname in a global variable to
-  # avoid multiple calls to SSM Parameter Store
+  : '
+    Cache the hostname in a global variable to
+    avoid multiple calls to SSM Parameter Store
+  '
+  local hostname
+  local hostname_ssm_parameter_path
+  hostname_ssm_parameter_path="/hosted_zone/umccr/name"
   if [[ -n "${HOSTNAME}" ]]; then
-	echo "${HOSTNAME}"
-	return
+    echo "${HOSTNAME}"
+    return
   fi
 
-  aws ssm get-parameter \
-    --name "/hosted_zone/umccr/name" \
-    --output json | \
-  jq --raw-output \
-    '.Parameter.Value'
+  if ! hostname="$( \
+    aws ssm get-parameter \
+      --name "${hostname_ssm_parameter_path}" \
+      --output json | \
+    jq --raw-output \
+      '.Parameter.Value' \
+  )"; then
+    echo_stderr "Error! Cannot get ssm parameter path ${hostname_ssm_parameter_path}"
+    echo_stderr "       Ensure you're in the correct AWS account and logged in"
+    return 1
+  fi
+  echo "${hostname}"
 }
 
 get_aws_account_prefix(){
@@ -384,15 +421,15 @@ while [[ $# -gt 0 ]]; do
       print_usage
       exit 0
       ;;
-	# Comment
+    # Comment
     -c|--comment)
       COMMENT="$2"
       shift 2
       ;;
     -c=*|--comment=*)
-	  COMMENT="${1#*=}"
-	  shift
-	  ;;
+      COMMENT="${1#*=}"
+      shift
+      ;;
     # Force boolean
     -f|--force)
       FORCE=true
@@ -403,78 +440,87 @@ while [[ $# -gt 0 ]]; do
     OUTPUT_URI_PREFIX="$2"
     shift 2
     ;;
-  -o=*|--output-uri-prefix=*)
-    OUTPUT_URI_PREFIX="${1#*=}"
-    shift
-    ;;
-  # Log URI prefix
-  -l|--logs-uri-prefix)
-    LOGS_URI_PREFIX="$2"
-    shift 2
-    ;;
-  -l=*|--logs-uri-prefix=*)
-    LOGS_URI_PREFIX="${1#*=}"
-    shift
-    ;;
-  # Cache URI prefix
-  -t|--cache-uri-prefix)
-    CACHE_URI_PREFIX="$2"
-    shift 2
-    ;;
-  -t=*|--cache-uri-prefix=*)
-    CACHE_URI_PREFIX="${1#*=}"
-    shift
-    ;;
-  # Project ID
-  -p|--project-id)
-    PROJECT_ID="$2"
-    shift 2
-    ;;
-  -p=*|--project-id=*)
-    PROJECT_ID="${1#*=}"
-    shift
-    ;;
-  # Analysis Storage Size
-  -s|--analysis-storage-size)
-    ANALYSIS_STORAGE_SIZE="$2"
-    shift 2
-    ;;
-  -s=*|--analysis-storage-size=*)
-    ANALYSIS_STORAGE_SIZE="${1#*=}"
-    shift
-    ;;
-  # Save draft payload to file
-  --save-draft-payload)
-	SAVE_DRAFT_PAYLOAD="$2"
-	shift 2
-	;;
-  --save-draft-payload=*)
-	SAVE_DRAFT_PAYLOAD="${1#*=}"
-	shift
-	;;
-  # Workflow version
-  --workflow-version)
-    WORKFLOW_VERSION="$2"
-    shift 2
-    ;;
-  --workflow-version=*)
-    WORKFLOW_VERSION="${1#*=}"
-    shift
-    ;;
-  # Code version
-  --code-version)
-    CODE_VERSION="$2"
-    shift 2
-    ;;
-  --code-version=*)
-    CODE_VERSION="${1#*=}"
-    shift
-    ;;
-  # Positional arguments (library IDs)
-  *)
-    LIBRARY_ID_ARRAY+=("$1")
-    shift
-    ;;
+    -o=*|--output-uri-prefix=*)
+      OUTPUT_URI_PREFIX="${1#*=}"
+      shift
+      ;;
+    # Log URI prefix
+    -l|--logs-uri-prefix)
+      LOGS_URI_PREFIX="$2"
+      shift 2
+      ;;
+    -l=*|--logs-uri-prefix=*)
+      LOGS_URI_PREFIX="${1#*=}"
+      shift
+      ;;
+    # Cache URI prefix
+    -t|--cache-uri-prefix)
+      CACHE_URI_PREFIX="$2"
+      shift 2
+      ;;
+    -t=*|--cache-uri-prefix=*)
+      CACHE_URI_PREFIX="${1#*=}"
+      shift
+      ;;
+    # Project ID
+    -p|--project-id)
+      PROJECT_ID="$2"
+      shift 2
+      ;;
+    -p=*|--project-id=*)
+      PROJECT_ID="${1#*=}"
+      shift
+      ;;
+    # Analysis Storage Size
+    -s|--analysis-storage-size)
+      ANALYSIS_STORAGE_SIZE="$2"
+      shift 2
+      ;;
+    -s=*|--analysis-storage-size=*)
+      ANALYSIS_STORAGE_SIZE="${1#*=}"
+      shift
+      ;;
+    # Save draft payload to file
+    --save-draft-payload)
+      SAVE_DRAFT_PAYLOAD="$2"
+      shift 2
+      ;;
+    --save-draft-payload=*)
+      SAVE_DRAFT_PAYLOAD="${1#*=}"
+      shift
+      ;;
+    # Workflow version
+    --workflow-version)
+      WORKFLOW_VERSION="$2"
+      shift 2
+      ;;
+    --workflow-version=*)
+      WORKFLOW_VERSION="${1#*=}"
+      shift
+      ;;
+    # Code version
+    --code-version)
+      CODE_VERSION="$2"
+      shift 2
+      ;;
+    --code-version=*)
+      CODE_VERSION="${1#*=}"
+      shift
+      ;;
+    # Input data
+    --input-data)
+      INPUT_DATA_FILE="$2"
+      shift 2
+      ;;
+    --input-data=*)
+      INPUT_DATA_FILE="${1#*=}"
+      shift
+      ;;
+    # Positional arguments (library IDs)
+    *)
+      LIBRARY_ID_ARRAY+=("$1")
+      shift
+      ;;
   esac
 done
 
@@ -514,7 +560,10 @@ if ! aws sts get-caller-identity --output json > /dev/null 2>&1; then
 fi
 
 # Set hostname
-HOSTNAME="$(get_hostname_from_ssm)"
+if ! HOSTNAME="$(get_hostname_from_ssm)"; then
+  print_usage
+  exit 1
+fi
 
 # Check script version
 compare_script_version_to_repo
@@ -532,7 +581,12 @@ declare -A MIN_REQUIREMENTS=(
   ["aws"]="2.0.0"    # Because what are you doing still on V1?
   ["curl"]="7.76.0"  # For --fail-with-body option
 )
-check_binaries
+
+if ! check_binaries; then
+  echo_stderr "Error: One or more required binaries are not installed. Please install the required binaries and try again. Exiting."
+  print_usage
+  exit 1
+fi
 
 # Confirm that the aws account id associated with the credentials
 # Matches the cognito user pool id associated with the portal token,
@@ -605,25 +659,47 @@ fi
 echo_stderr "Generating engine parameters"
 engine_parameters=$( \
   jq --null-input --raw-output --compact-output \
-  --arg outputUriPrefix "${OUTPUT_URI_PREFIX}" \
-  --arg logsUriPrefix "${LOGS_URI_PREFIX}" \
-  --arg cacheUriPrefix "${CACHE_URI_PREFIX}" \
-  --arg projectId "${PROJECT_ID}" \
-  --arg portalRunId "${portal_run_id}" \
-  --arg analysisStorageSize "${ANALYSIS_STORAGE_SIZE}" \
-  '
-    # Get the engine parameters
-    {
-      "outputUri": ( if $outputUriPrefix != "" then ($outputUriPrefix + $portalRunId + "/") else "" end ),
-      "logsUri": ( if $logsUriPrefix != "" then ($logsUriPrefix + $portalRunId + "/") else "" end ),
-      "cacheUri": ( if $cacheUriPrefix != "" then ($cacheUriPrefix + $portalRunId + "/") else "" end ),
-      "projectId": $projectId,
-      "analysisStorageSize": $analysisStorageSize
-    } |
-    # Remove empty values
-    with_entries(select(.value != ""))
-  ' \
+    --arg outputUriPrefix "${OUTPUT_URI_PREFIX}" \
+    --arg logsUriPrefix "${LOGS_URI_PREFIX}" \
+    --arg cacheUriPrefix "${CACHE_URI_PREFIX}" \
+    --arg projectId "${PROJECT_ID}" \
+    --arg portalRunId "${portal_run_id}" \
+    --arg analysisStorageSize "${ANALYSIS_STORAGE_SIZE}" \
+    '
+      # Get the engine parameters
+      {
+        "outputUri": ( if $outputUriPrefix != "" then ($outputUriPrefix + $portalRunId + "/") else "" end ),
+        "logsUri": ( if $logsUriPrefix != "" then ($logsUriPrefix + $portalRunId + "/") else "" end ),
+        "cacheUri": ( if $cacheUriPrefix != "" then ($cacheUriPrefix + $portalRunId + "/") else "" end ),
+        "projectId": $projectId,
+        "analysisStorageSize": $analysisStorageSize
+      } |
+      # Remove empty values
+      with_entries(select(.value != ""))
+    ' \
 )
+
+# Check for existing input data
+if [[ -n "${INPUT_DATA_FILE}" ]]; then
+  # Check if input data file exists
+  if [[ ! -f "${INPUT_DATA_FILE}" ]]; then
+    echo_stderr "${INPUT_DATA_FILE} does not exist"
+    print_usage
+    exit 1
+  fi
+
+  # Check input data is in json format
+  if ! jq -e 'type == "object"' < "${INPUT_DATA_FILE}" >/dev/null 2>&1; then
+    echo_stderr "${INPUT_DATA_FILE} is not in json format"
+    print_usage
+    exit 1
+  fi
+
+  # Load in input data
+  input_data_json_str="$(jq < "${INPUT_DATA_FILE}")"
+else
+  input_data_json_str="null"
+fi
 
 # Generate the event
 lambda_payload="$( \
@@ -633,6 +709,7 @@ lambda_payload="$( \
     --arg portalRunId "${portal_run_id}" \
     --argjson libraries "${libraries}" \
     --argjson engineParameters "${engine_parameters}" \
+    --argjson inputData "${input_data_json_str}" \
     '
     {
       "status": "DRAFT",
@@ -649,15 +726,26 @@ lambda_payload="$( \
             "engineParameters": $engineParameters
           }
         }
+      end |
+      # If we have input data
+      if $inputData then
+        # Set payload version
+        .["payload"]["version"] = $payloadVersion |
+        # If payload data already exists we need to merge
+        if .["payload"]["data"] then
+          .["payload"]["data"] = ($inputData * .["payload"]["data"])
+        # Otherwise just use the input json data
+        else
+          .["payload"]["data"] = $inputData
+        end
       end
     ' \
 )"
 
 # Confirm before pushing the event
+echo_stderr "Send the following payload to the lambda object:"
+jq --raw-output <<< "${lambda_payload}" 1>&2
 if [[ "${FORCE}" == "false" ]]; then
-    echo_stderr "Send the following payload to the lambda object:"
-    jq --raw-output <<< "${lambda_payload}" 1>&2
-
     read -r -p 'Confirm to push this event to EventBridge? (y/n): ' confirm_push
     if [[ ! "${confirm_push}" =~ ^[Yy]$ ]]; then
       echo_stderr "Aborting event push."
@@ -672,10 +760,10 @@ if [[ -n "${SAVE_DRAFT_PAYLOAD}" ]]; then
 fi
 
 # Set the trap
-trap 'rm -rf "${LAMBDA_TMP_DIR:-}"' EXIT
+LAMBDA_TMP_DIR="$(mktemp -d "LAMBDA_TMP_DIR_XXXXXX")"
+trap 'rm -rf "${LAMBDA_TMP_DIR}"' EXIT
 
 # Push the event to EventBridge
-LAMBDA_TMP_DIR="$(mktemp -d "LAMBDA_TMP_DIR_XXXXXX")"
 LAMBDA_DATA_PIPE="${LAMBDA_TMP_DIR}/lambda_data_pipe"
 mkfifo "${LAMBDA_DATA_PIPE}"
 errors_json="$(mktemp -p "${LAMBDA_TMP_DIR}" "errors.XXXXXX.json")"
