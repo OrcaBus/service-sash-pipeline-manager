@@ -113,9 +113,9 @@ Keyword arguments:
                                                            This might be used to explicitly set input files
                                                            See input data note for more information.
   --portal-run-id=<portal_run_id>              (Optional) Override the auto-generated portal run ID.
-                                                           Use with --input-data when providing a complete payload
-                                                           (tags + inputs + engineParameters) to bypass populateDraftData.
-                                                           The engineParameters URIs in the input-data file must use this same ID.
+                                                           If --input-data contains engineParameters.outputUri, the
+                                                           portal run ID is extracted from it automatically and this
+                                                           flag is not needed.
 
 Environment:
   PORTAL_TOKEN: (Required) Your personal portal token from https://portal.${hostname}/
@@ -630,9 +630,28 @@ if ! email_address="$(get_email_from_portal_token)"; then
   exit 1
 fi
 
-# Generate the portal run id (use provided value if set via --portal-run-id)
+# Generate the portal run id:
+# 1. If --input-data provides engineParameters.outputUri, extract the portalRunId from it
+# 2. Otherwise use --portal-run-id if provided
+# 3. Otherwise auto-generate
+if [[ -z "${portal_run_id:-}" && -n "${INPUT_DATA_FILE:-}" ]]; then
+  extracted_portal_run_id="$( \
+    jq --raw-output \
+      '
+        .engineParameters.outputUri //
+        empty |
+        rtrimstr("/") |
+        split("/")[-1]
+      ' \
+      "${INPUT_DATA_FILE}" 2>/dev/null || true \
+  )"
+  if [[ -n "${extracted_portal_run_id}" ]]; then
+    portal_run_id="${extracted_portal_run_id}"
+    echo_stderr "Using portal run ID from input data engineParameters.outputUri: ${portal_run_id}"
+  fi
+fi
 portal_run_id="${portal_run_id:-$(generate_portal_run_id)}"
-echo_stderr "Generated Portal Run ID: ${portal_run_id}"
+echo_stderr "Portal Run ID: ${portal_run_id}"
 
 # Get the workflow object
 workflow="$( \
