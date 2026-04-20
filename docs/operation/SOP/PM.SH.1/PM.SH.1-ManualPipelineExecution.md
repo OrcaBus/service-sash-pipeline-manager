@@ -69,17 +69,14 @@ from upstream runs that were produced in prod).
 `populateDraftData` validates the incoming payload first: if it already satisfies the
 [complete-data-draft-schema.json](../../../../app/event-schemas/complete-data-draft-schema.json)
 (`tags` + `inputs` + `engineParameters`), it exits immediately without performing any
-lookups. Providing a complete payload via `--input-data` is therefore the recommended approach.
+lookups. The recommended approach is to provide `tags`, `inputs`, and the ICA identifiers
+(`projectId` + `pipelineId`) via `--input-data`, and let the script generate the URI fields
+via the prefix flags. The script merges both, producing a complete payload without requiring
+a pre-generated portalRunId.
 
 **Steps:**
 
-1. Generate a portalRunId:
-   ```bash
-   PORTAL_RUN_ID="$(date -u +'%Y%m%d')$(openssl rand -hex 4)"
-   ```
-
-2. Build an `input_data.json` containing all required schema fields, using
-   `$PORTAL_RUN_ID` in the `engineParameters` URIs:
+1. Build an `input_data.json` with `tags`, `inputs`, and the ICA identifiers:
    ```json
    {
      "tags": {
@@ -102,26 +99,22 @@ lookups. Providing a complete payload via `--input-data` is therefore the recomm
      },
      "engineParameters": {
        "projectId": "<icav2_project_id>",
-       "pipelineId": "<icav2_pipeline_id>",
-       "outputUri": "s3://.../analysis/sash/<PORTAL_RUN_ID>/",
-       "logsUri": "s3://.../logs/sash/<PORTAL_RUN_ID>/",
-       "cacheUri": "s3://.../cache/sash/<PORTAL_RUN_ID>/"
+       "pipelineId": "<icav2_pipeline_id>"
      }
    }
    ```
 
-3. Run the script - the portalRunId is extracted automatically from `engineParameters.outputUri`:
+2. Run the script with prefix flags - the script auto-generates the portalRunId and builds the full URIs:
    ```bash
    bash generate-WRU-draft.sh <tumor_library_id> <normal_library_id> \
-     --comment 'Restart - pre-populated inputs' \
+     --comment 'Restart in dev - pre-populated inputs' \
      --input-data input_data.json \
+     --output-uri-prefix s3://.../analysis/sash/ \
+     --logs-uri-prefix s3://.../logs/sash/ \
+     --cache-uri-prefix s3://.../cache/sash/ \
      --workflow-version <version> \
      --code-version <code_version>
    ```
-
-   > **Note:** do not pass `--output-uri-prefix`, `--logs-uri-prefix`, or
-   > `--cache-uri-prefix` when using this pattern - those flags would override the
-   > URIs supplied in `--input-data`.
 
 
 Confirmation

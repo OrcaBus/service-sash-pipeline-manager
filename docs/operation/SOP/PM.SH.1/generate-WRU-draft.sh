@@ -102,19 +102,17 @@ The populate draft data service will try to auto-populate inputs based on the in
    Use this when libraries have no fastq sets registered in the metadata service
    (e.g. restarting in dev from prod upstream runs where raw data does not exist in dev).
 
-   Generate a portalRunId first, embed it in the engineParameters URIs, then pass
-   the file to --input-data. The script extracts the portalRunId automatically from
-   engineParameters.outputUri so no extra flags are needed:
+   Provide tags, inputs, and the ICA identifiers (projectId + pipelineId) in --input-data,
+   and use the prefix flags for the URIs. The script merges both, generating the portalRunId
+   automatically:
 
-   PORTAL_RUN_ID=\"\$(date -u +'%Y%m%d')\$(openssl rand -hex 4)\"
-   # build input_data.json with all schema fields and \$PORTAL_RUN_ID in URIs, then:
    bash generate-WRU-draft.sh tumor_lib normal_lib \\
-     --comment 'Restart - pre-populated inputs' \\
+     --comment 'Restart in dev - pre-populated inputs' \\
      --input-data input_data.json \\
+     --output-uri-prefix s3://.../analysis/sash/ \\
+     --logs-uri-prefix s3://.../logs/sash/ \\
+     --cache-uri-prefix s3://.../cache/sash/ \\
      --workflow-version <version> --code-version <code>
-
-   Note: do not pass --output-uri-prefix/--logs-uri-prefix/--cache-uri-prefix when
-   using this pattern, as those flags would override the URIs from --input-data.
 
 Positional arguments:
   library_id:   One or more library IDs to link to the WorkflowRunUpdate event.
