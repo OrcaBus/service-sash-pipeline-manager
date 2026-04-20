@@ -7,7 +7,7 @@ Table of Contents
 - [Introduction](#introduction)
 - [Requirements](#requirements)
 - [Procedure](#procedure)
-- [Bypassing populateDraftData](#bypassing-populatedraftdata)
+- [Pre-populating draft data](#pre-populating-draft-data)
 - [Confirmation](#confirmation)
 
 
@@ -50,7 +50,7 @@ For convenience, we provide a shell script that generates and optionally submits
   - You can have the script save the output json file by using the `--save-draft-payload` method.
 
 
-Bypassing populateDraftData
+Pre-populating draft data
 --------------------------------------------------------------------------------
 
 > **Dev environment note:** Libraries analysed in dev that originate from prod upstream
@@ -60,7 +60,7 @@ Bypassing populateDraftData
 > ```
 > ValueError: Expected exactly one current fastq set for library <id>, found 0
 > ```
-> The bypass described below is the standard workaround for this scenario.
+> The pattern described below is the standard approach for this scenario.
 
 In some cases `populateDraftData` cannot complete - for example when libraries have no
 current fastq set registered in the metadata service (common when restarting in dev
@@ -69,8 +69,7 @@ from upstream runs that were produced in prod).
 `populateDraftData` validates the incoming payload first: if it already satisfies the
 [complete-data-draft-schema.json](../../../../app/event-schemas/complete-data-draft-schema.json)
 (`tags` + `inputs` + `engineParameters`), it exits immediately without performing any
-lookups. Providing a complete payload via `--input-data` is therefore the recommended
-workaround.
+lookups. Providing a complete payload via `--input-data` is therefore the recommended approach.
 
 **Steps:**
 
@@ -114,7 +113,7 @@ workaround.
 3. Run the script - the portalRunId is extracted automatically from `engineParameters.outputUri`:
    ```bash
    bash generate-WRU-draft.sh <tumor_library_id> <normal_library_id> \
-     --comment 'Restart - bypass fastq lookup' \
+     --comment 'Restart - pre-populated inputs' \
      --input-data input_data.json \
      --workflow-version <version> \
      --code-version <code_version>

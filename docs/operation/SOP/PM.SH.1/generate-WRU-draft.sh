@@ -95,12 +95,12 @@ The populate draft data service will try to auto-populate inputs based on the in
   }
 }
 
-2. Full schema bypass - skip populateDraftData entirely by providing a payload that
+2. Full payload - skip populateDraftData lookups by providing a payload that already
    satisfies the complete-data-draft-schema.json (tags + inputs + engineParameters).
    populateDraftData validates the payload first; if it is already complete it exits
    immediately without performing any lookups (including the fastq RGID lookup).
    Use this when libraries have no fastq sets registered in the metadata service
-   (e.g. restarting in dev from prod upstream runs).
+   (e.g. restarting in dev from prod upstream runs where raw data does not exist in dev).
 
    Generate a portalRunId first, embed it in the engineParameters URIs, then pass
    the file to --input-data. The script extracts the portalRunId automatically from
@@ -109,7 +109,7 @@ The populate draft data service will try to auto-populate inputs based on the in
    PORTAL_RUN_ID=\"\$(date -u +'%Y%m%d')\$(openssl rand -hex 4)\"
    # build input_data.json with all schema fields and \$PORTAL_RUN_ID in URIs, then:
    bash generate-WRU-draft.sh tumor_lib normal_lib \\
-     --comment 'Restart - bypass fastq lookup' \\
+     --comment 'Restart - pre-populated inputs' \\
      --input-data input_data.json \\
      --workflow-version <version> --code-version <code>
 
