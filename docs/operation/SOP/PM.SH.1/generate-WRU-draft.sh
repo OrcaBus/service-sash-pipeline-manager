@@ -69,7 +69,6 @@ generate-WRU-draft.sh (library_id)...
                       [--workflow-version <workflow_version>]
                       [--code-version <code_version>]
                       [--input-data <input_data_path>]
-                      [--portal-run-id <portal_run_id>]
 
 Description:
 Run this script to generate a draft WorkflowRunUpdate event for the specified library IDs.
@@ -133,10 +132,6 @@ Keyword arguments:
   --input-data=<input_data_file>                (Optional) Add existing input data to the data section of the payload.
                                                            This might be used to explicitly set input files
                                                            See input data note for more information.
-  --portal-run-id=<portal_run_id>              (Optional) Override the auto-generated portal run ID.
-                                                           If --input-data contains engineParameters.outputUri, the
-                                                           portal run ID is extracted from it automatically and this
-                                                           flag is not needed.
 
 Environment:
   PORTAL_TOKEN: (Required) Your personal portal token from https://portal.${hostname}/
@@ -542,15 +537,6 @@ while [[ $# -gt 0 ]]; do
       INPUT_DATA_FILE="${1#*=}"
       shift
       ;;
-    # Portal run id override
-    --portal-run-id)
-      portal_run_id="$2"
-      shift 2
-      ;;
-    --portal-run-id=*)
-      portal_run_id="${1#*=}"
-      shift
-      ;;
     # Positional arguments (library IDs)
     *)
       LIBRARY_ID_ARRAY+=("$1")
@@ -651,27 +637,8 @@ if ! email_address="$(get_email_from_portal_token)"; then
   exit 1
 fi
 
-# Generate the portal run id:
-# 1. If --input-data provides engineParameters.outputUri, extract the portalRunId from it
-# 2. Otherwise use --portal-run-id if provided
-# 3. Otherwise auto-generate
-if [[ -z "${portal_run_id:-}" && -n "${INPUT_DATA_FILE:-}" ]]; then
-  extracted_portal_run_id="$( \
-    jq --raw-output \
-      '
-        .engineParameters.outputUri //
-        empty |
-        rtrimstr("/") |
-        split("/")[-1]
-      ' \
-      "${INPUT_DATA_FILE}" 2>/dev/null || true \
-  )"
-  if [[ -n "${extracted_portal_run_id}" ]]; then
-    portal_run_id="${extracted_portal_run_id}"
-    echo_stderr "Using portal run ID from input data engineParameters.outputUri: ${portal_run_id}"
-  fi
-fi
-portal_run_id="${portal_run_id:-$(generate_portal_run_id)}"
+# Generate the portal run id
+portal_run_id="$(generate_portal_run_id)"
 echo_stderr "Portal Run ID: ${portal_run_id}"
 
 # Get the workflow object
