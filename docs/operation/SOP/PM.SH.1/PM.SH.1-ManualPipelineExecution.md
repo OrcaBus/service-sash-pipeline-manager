@@ -53,7 +53,16 @@ For convenience, we provide a shell script that generates and optionally submits
 Bypassing populateDraftData
 --------------------------------------------------------------------------------
 
-In some cases `populateDraftData` cannot complete — for example when libraries have no
+> **Dev environment note:** Libraries analysed in dev that originate from prod upstream
+> runs (dragen, oncoanalyser) will typically have no fastq sets registered in the dev
+> metadata service. This is expected - the raw sequencing data does not exist in dev,
+> only the derived analysis outputs. This causes `populateDraftData` to fail with:
+> ```
+> ValueError: Expected exactly one current fastq set for library <id>, found 0
+> ```
+> The bypass described below is the standard workaround for this scenario.
+
+In some cases `populateDraftData` cannot complete - for example when libraries have no
 current fastq set registered in the metadata service (common when restarting in dev
 from upstream runs that were produced in prod).
 
@@ -102,7 +111,7 @@ workaround.
    }
    ```
 
-3. Run the script — the portalRunId is extracted automatically from `engineParameters.outputUri`:
+3. Run the script - the portalRunId is extracted automatically from `engineParameters.outputUri`:
    ```bash
    bash generate-WRU-draft.sh <tumor_library_id> <normal_library_id> \
      --comment 'Restart - bypass fastq lookup' \
@@ -112,7 +121,7 @@ workaround.
    ```
 
    > **Note:** do not pass `--output-uri-prefix`, `--logs-uri-prefix`, or
-   > `--cache-uri-prefix` when using this pattern — those flags would override the
+   > `--cache-uri-prefix` when using this pattern - those flags would override the
    > URIs supplied in `--input-data`.
 
 

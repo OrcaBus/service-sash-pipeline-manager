@@ -87,7 +87,7 @@ Input data note:
 The populate draft data service will try to auto-populate inputs based on the information it already has.
 --input-data can be used in two ways:
 
-1. Partial override — steer populateDraftData to use a specific upstream analysis
+1. Partial override - steer populateDraftData to use a specific upstream analysis
    (e.g. when two dragen runs exist and you want a particular one):
 {
   \"inputs\": {
@@ -95,7 +95,7 @@ The populate draft data service will try to auto-populate inputs based on the in
   }
 }
 
-2. Full schema bypass — skip populateDraftData entirely by providing a payload that
+2. Full schema bypass - skip populateDraftData entirely by providing a payload that
    satisfies the complete-data-draft-schema.json (tags + inputs + engineParameters).
    populateDraftData validates the payload first; if it is already complete it exits
    immediately without performing any lookups (including the fastq RGID lookup).
