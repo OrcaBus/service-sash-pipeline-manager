@@ -85,13 +85,36 @@ The output uri prefix, cache uri and logs uri prefixes must be set to a location
 
 Input data note:
 The populate draft data service will try to auto-populate inputs based on the information it already has.
-This may have unintended consequences if there exists two downstream analyses and you want inputs from one specific analysis.
-In this circumstance it is recommended to use the '--input-data <json_file>' to generate an existing data object to populate, for example:
+--input-data can be used in two ways:
+
+1. Partial override — steer populateDraftData to use a specific upstream analysis
+   (e.g. when two dragen runs exist and you want a particular one):
 {
   \"inputs\": {
     \"dragenSomaticDir\": \"s3://path/to/specific/dragen-somatic-directory/\"
   }
 }
+
+2. Full schema bypass — skip populateDraftData entirely by providing a payload that
+   satisfies the complete-data-draft-schema.json (tags + inputs + engineParameters).
+   populateDraftData validates the payload first; if it is already complete it exits
+   immediately without performing any lookups (including the fastq RGID lookup).
+   Use this when libraries have no fastq sets registered in the metadata service
+   (e.g. restarting in dev from prod upstream runs).
+
+   Generate a portalRunId first, embed it in the engineParameters URIs, then pass
+   the file to --input-data. The script extracts the portalRunId automatically from
+   engineParameters.outputUri so no extra flags are needed:
+
+   PORTAL_RUN_ID=\"\$(date -u +'%Y%m%d')\$(openssl rand -hex 4)\"
+   # build input_data.json with all schema fields and \$PORTAL_RUN_ID in URIs, then:
+   bash generate-WRU-draft.sh tumor_lib normal_lib \\
+     --comment 'Restart - bypass fastq lookup' \\
+     --input-data input_data.json \\
+     --workflow-version <version> --code-version <code>
+
+   Note: do not pass --output-uri-prefix/--logs-uri-prefix/--cache-uri-prefix when
+   using this pattern, as those flags would override the URIs from --input-data.
 
 Positional arguments:
   library_id:   One or more library IDs to link to the WorkflowRunUpdate event.

@@ -1,12 +1,13 @@
 Manual Pipeline Execution
 ================================================================================
-- Version: 2026.03.05
+- Version: 2026.04.20
 - Contact: Alexis Lucattini, [alexisl@unimelb.edu.au](mailto:alexisl@unimelb.edu.au)
 
 Table of Contents
 - [Introduction](#introduction)
 - [Requirements](#requirements)
 - [Procedure](#procedure)
+- [Bypassing populateDraftData](#bypassing-populatedraftdata)
 - [Confirmation](#confirmation)
 
 
@@ -47,6 +48,72 @@ For convenience, we provide a shell script that generates and optionally submits
 - The script should produce the JSON output of the DRAFT event that can be inspected to double check that reflects the intended request
   - Take note of the generated `workflowRunName` or `portalRunId` and the URL to the OrcaBus Portal view of the workflow.
   - You can have the script save the output json file by using the `--save-draft-payload` method.
+
+
+Bypassing populateDraftData
+--------------------------------------------------------------------------------
+
+In some cases `populateDraftData` cannot complete — for example when libraries have no
+current fastq set registered in the metadata service (common when restarting in dev
+from upstream runs that were produced in prod).
+
+`populateDraftData` validates the incoming payload first: if it already satisfies the
+[complete-data-draft-schema.json](../../../../app/event-schemas/complete-data-draft-schema.json)
+(`tags` + `inputs` + `engineParameters`), it exits immediately without performing any
+lookups. Providing a complete payload via `--input-data` is therefore the recommended
+workaround.
+
+**Steps:**
+
+1. Generate a portalRunId:
+   ```bash
+   PORTAL_RUN_ID="$(date -u +'%Y%m%d')$(openssl rand -hex 4)"
+   ```
+
+2. Build an `input_data.json` containing all required schema fields, using
+   `$PORTAL_RUN_ID` in the `engineParameters` URIs:
+   ```json
+   {
+     "tags": {
+       "libraryId": "<normal_library_id>",
+       "subjectId": "<subject_id>",
+       "individualId": "<individual_id>",
+       "fastqRgidList": [],
+       "tumorLibraryId": "<tumor_library_id>",
+       "tumorFastqRgidList": []
+     },
+     "inputs": {
+       "groupId": "<tumor>__<normal>",
+       "subjectId": "<tumor>__<normal>",
+       "tumorDnaSampleId": "<tumor_library_id>",
+       "normalDnaSampleId": "<normal_library_id>",
+       "dragenSomaticDir": "s3://...",
+       "dragenGermlineDir": "s3://...",
+       "oncoanalyserDnaDir": "s3://...",
+       "refDataPath": "s3://reference-data-.../refdata/sash/<version>/"
+     },
+     "engineParameters": {
+       "projectId": "<icav2_project_id>",
+       "pipelineId": "<icav2_pipeline_id>",
+       "outputUri": "s3://.../analysis/sash/<PORTAL_RUN_ID>/",
+       "logsUri": "s3://.../logs/sash/<PORTAL_RUN_ID>/",
+       "cacheUri": "s3://.../cache/sash/<PORTAL_RUN_ID>/"
+     }
+   }
+   ```
+
+3. Run the script — the portalRunId is extracted automatically from `engineParameters.outputUri`:
+   ```bash
+   bash generate-WRU-draft.sh <tumor_library_id> <normal_library_id> \
+     --comment 'Restart - bypass fastq lookup' \
+     --input-data input_data.json \
+     --workflow-version <version> \
+     --code-version <code_version>
+   ```
+
+   > **Note:** do not pass `--output-uri-prefix`, `--logs-uri-prefix`, or
+   > `--cache-uri-prefix` when using this pattern — those flags would override the
+   > URIs supplied in `--input-data`.
 
 
 Confirmation
