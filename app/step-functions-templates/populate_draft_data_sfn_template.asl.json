@@ -590,7 +590,7 @@
               },
               "End": true,
               "Output": {
-                "library": "{% [\n  /* Draft libraries list */\n  $librariesList ~>\n  $single(function($libraryIter){\n    $libraryIter.libraryId = $tags.tumorLibraryId \n  }),\n  {\n    \"readsets\": $states.result\n  }\n] ~>\n$merge %}"
+                "library": "{% [\n  /* Draft libraries list */\n  $libraries ~>\n  $single(function($libraryIter){\n    $libraryIter.libraryId = $tags.tumorLibraryId \n  }),\n  {\n    \"readsets\": $states.result\n  }\n] ~>\n$merge %}"
               }
             },
             "tumor libraries is empty (readsets)": {
