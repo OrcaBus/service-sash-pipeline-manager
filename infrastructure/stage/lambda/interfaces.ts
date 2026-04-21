@@ -102,7 +102,7 @@ export const lambdaRequirementsMap: Record<LambdaName, LambdaRequirements> = {
   getMetadataTags: {
     needsOrcabusApiTools: true,
   },
-  // Post draft lambads
+  // Post draft lambdas
   postSchemaValidation: {
     needsHigherMemory: true,
     needsIcav2Tools: true,
