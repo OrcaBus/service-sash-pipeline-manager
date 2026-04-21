@@ -107,6 +107,8 @@ export const lambdaRequirementsMap: Record<LambdaName, LambdaRequirements> = {
     needsHigherMemory: true,
     needsIcav2Tools: true,
     needsOrcabusApiTools: true,
+    needsWorkflowEnvVars: true,
+    needsBucketEnvVars: true,
   },
   // Convert ready to ICAv2 WES Event - no requirements
   convertReadyEventInputsToIcav2WesEventInputs: {
