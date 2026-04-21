@@ -1,8 +1,11 @@
 /* Directory constants */
 import path from 'path';
-import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
 import { WorkflowVersionType } from './interfaces';
 import { DATA_SCHEMA_REGISTRY_NAME } from '@orcabus/platform-cdk-constructs/shared-config/event-bridge';
+import {
+  REFERENCE_DATA_BUCKET,
+  TEST_DATA_BUCKET,
+} from '@orcabus/platform-cdk-constructs/shared-config/s3';
 
 export const APP_ROOT = path.join(__dirname, '../../app');
 export const LAMBDA_DIR = path.join(APP_ROOT, 'lambdas');
@@ -55,10 +58,6 @@ export const SSM_PARAMETER_PATH_WORKFLOW_NAME = path.join(
   SSM_PARAMETER_PATH_PREFIX,
   'workflow-name'
 );
-export const SSM_PARAMETER_PATH_DEFAULT_WORKFLOW_VERSION = path.join(
-  SSM_PARAMETER_PATH_PREFIX,
-  'default-workflow-version'
-);
 // Engine Parameters
 export const SSM_PARAMETER_PATH_PREFIX_PIPELINE_IDS_BY_WORKFLOW_VERSION = path.join(
   SSM_PARAMETER_PATH_PREFIX,
@@ -105,12 +104,9 @@ export const SUCCEEDED_STATUS = 'SUCCEEDED';
 export const SCHEMA_REGISTRY_NAME = DATA_SCHEMA_REGISTRY_NAME;
 export const SSM_SCHEMA_ROOT = path.join(SSM_PARAMETER_PATH_PREFIX, 'schemas');
 
-/* Future proofing */
-export const NEW_WORKFLOW_MANAGER_IS_DEPLOYED: Record<StageName, boolean> = {
-  BETA: true,
-  GAMMA: true,
-  PROD: true,
-};
-
 // Used to group event rules and step functions
 export const STACK_PREFIX = 'orca-sash';
+
+/* Buckets */
+export const TEST_DATA_BUCKET_NAME = TEST_DATA_BUCKET;
+export const REF_DATA_BUCKET_NAME = REFERENCE_DATA_BUCKET;
