@@ -17,6 +17,8 @@ export type LambdaName =
   | 'getFastqRgidsFromLibraryId'
   | 'getLibraries'
   | 'getMetadataTags'
+  // Post-Draft checks
+  | 'postSchemaValidation'
   // Ready to ICAv2 WES lambdas
   | 'convertReadyEventInputsToIcav2WesEventInputs'
   // ICAv2 WES to WRSC Event lambdas
@@ -39,6 +41,7 @@ export const lambdaNameList: LambdaName[] = [
   'getFastqRgidsFromLibraryId',
   'getLibraries',
   'getMetadataTags',
+  'postSchemaValidation',
   // Ready to ICAv2 WES lambdas
   'convertReadyEventInputsToIcav2WesEventInputs',
   // ICAv2 WES to WRSC Event lambdas
@@ -48,8 +51,12 @@ export const lambdaNameList: LambdaName[] = [
 // Requirements interface for Lambda functions
 export interface LambdaRequirements {
   needsOrcabusApiTools?: boolean;
+  needsIcav2Tools?: boolean;
   needsSsmParametersAccess?: boolean;
   needsSchemaRegistryAccess?: boolean;
+  needsHigherMemory?: boolean;
+  needsWorkflowEnvVars?: boolean;
+  needsBucketEnvVars?: boolean;
 }
 
 // Lambda requirements mapping
@@ -95,13 +102,30 @@ export const lambdaRequirementsMap: Record<LambdaName, LambdaRequirements> = {
   getMetadataTags: {
     needsOrcabusApiTools: true,
   },
+  // Post draft lambads
+  postSchemaValidation: {
+    needsHigherMemory: true,
+    needsIcav2Tools: true,
+    needsOrcabusApiTools: true,
+  },
   // Convert ready to ICAv2 WES Event - no requirements
-  convertReadyEventInputsToIcav2WesEventInputs: {},
+  convertReadyEventInputsToIcav2WesEventInputs: {
+    needsHigherMemory: true,
+  },
   // Needs OrcaBus toolkit to get the wrsc event
   convertIcav2WesEventToWrscEvent: {
     needsOrcabusApiTools: true,
   },
 };
+
+export interface BuildAllLambdasProps {
+  refDataBucketName: string;
+  testDataBucketName: string;
+}
+
+export interface BuildLambdaProps extends BuildAllLambdasProps {
+  lambdaName: LambdaName;
+}
 
 export interface LambdaInput {
   lambdaName: LambdaName;

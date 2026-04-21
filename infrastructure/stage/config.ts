@@ -4,7 +4,6 @@ import { StatefulApplicationStackConfig, StatelessApplicationStackConfig } from 
 import {
   DEFAULT_PAYLOAD_VERSION,
   EVENT_BUS_NAME,
-  NEW_WORKFLOW_MANAGER_IS_DEPLOYED,
   SSM_PARAMETER_PATH_CACHE_PREFIX,
   SSM_PARAMETER_PATH_ICAV2_PROJECT_ID,
   SSM_PARAMETER_PATH_LOGS_PREFIX,
@@ -20,6 +19,8 @@ import {
   WORKFLOW_OUTPUT_PREFIX,
   WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP,
   WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP,
+  TEST_DATA_BUCKET_NAME,
+  REF_DATA_BUCKET_NAME,
 } from './constants';
 import { substituteBucketConstants } from './utils';
 import { SsmParameterPaths, SsmParameterValues } from './ssm/interfaces';
@@ -81,9 +82,14 @@ export const getStatelessStackProps = (stage: StageName): StatelessApplicationSt
   return {
     // Event bus object
     eventBusName: EVENT_BUS_NAME,
-    // Is new workflow manager deployed
-    isNewWorkflowManagerDeployed: NEW_WORKFLOW_MANAGER_IS_DEPLOYED[stage],
     // SSM Parameter Paths
     ssmParameterPaths: getSsmParameterPaths(),
+
+    // TestData and RefData bucket names
+    testDataBucketName: TEST_DATA_BUCKET_NAME,
+    refDataBucketName: REF_DATA_BUCKET_NAME,
+
+    // Stage Name
+    stageName: stage,
   };
 };
