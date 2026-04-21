@@ -202,7 +202,16 @@ def handler(event, context) -> Dict[str, bool]:
 
     if project_prefix is None:
         logger.error("Could not get the project prefix")
-        return
+        add_comment_to_workflow_run(
+            workflow_run_orcabus_id=workflow_run_id,
+            comment="Post schema validation failed: Could not get the ica project prefix",
+            author=COMMENT_AUTHOR.format(
+                WORKFLOW_NAME=environ.get(WORKFLOW_NAME_ENV_VAR)
+            )
+        )
+        return {
+            "isValid": False
+        }
 
     # Confirm the engine parameters match
     is_valid, comment = validate_engine_parameters(

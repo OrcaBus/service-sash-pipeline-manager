@@ -81,6 +81,7 @@ export const lambdaRequirementsMap: Record<LambdaName, LambdaRequirements> = {
   validateDraftDataCompleteSchema: {
     needsSchemaRegistryAccess: true,
     needsSsmParametersAccess: true,
+    needsWorkflowEnvVars: true,
   },
   // Glue upstream lambdas
   getWorkflowRunObject: {
