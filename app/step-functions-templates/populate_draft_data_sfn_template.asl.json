@@ -21,7 +21,9 @@
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
         "FunctionName": "${__validate_draft_data_complete_schema_lambda_function_arn__}",
-        "Payload": "{% $data %}"
+        "Payload": {
+          "data": "{% $data %}"
+        }
       },
       "Retry": [
         {
