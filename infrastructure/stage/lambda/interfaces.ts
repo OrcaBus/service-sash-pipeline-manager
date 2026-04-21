@@ -82,6 +82,7 @@ export const lambdaRequirementsMap: Record<LambdaName, LambdaRequirements> = {
     needsSchemaRegistryAccess: true,
     needsSsmParametersAccess: true,
     needsWorkflowEnvVars: true,
+    needsOrcabusApiTools: true,
   },
   // Glue upstream lambdas
   getWorkflowRunObject: {
