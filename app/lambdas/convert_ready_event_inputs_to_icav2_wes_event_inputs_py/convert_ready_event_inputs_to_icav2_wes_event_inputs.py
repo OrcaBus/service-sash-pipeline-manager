@@ -23,6 +23,7 @@ To generate an output like the following
   "inputs": {
         "monochrome_logs": True,
         "mode": "wgts",
+        "publish_dir_mode": "symlink",
         "samplesheet": [
             # Tumor Somatic dir
             {
@@ -61,6 +62,7 @@ import pandas as pd
 # Globals
 DEFAULT_MODE = "wgts"
 DEFAULT_MONOCHROME_LOGS = True
+DEFAULT_PUBLISH_DIR_MODE = "symlink"
 
 DEFAULT_SAMPLESHEET_COLUMNS = [
     "id",
@@ -135,106 +137,9 @@ def handler(event, context):
             lambda kv_iter_: kv_iter_[1] is not None,
             {
                 "monochrome_logs": ready_event_inputs.get("monochromeLogs", DEFAULT_MONOCHROME_LOGS),
+                "publish_dir_mode": ready_event_inputs.get("publishDirMode", DEFAULT_PUBLISH_DIR_MODE),
                 "samplesheet": generate_samplesheet_from_inputs(ready_event_inputs),
                 "ref_data_path": ready_event_inputs["refDataPath"],
             }.items()
         ))
     }
-
-
-# if __name__ == "__main__":
-#     import json
-#
-#     print(json.dumps(
-#         handler(
-#             {
-#                 "inputs": {
-#                     "mode": "wgts",
-#                     "groupId": "SBJ05828",
-#                     "subjectId": "SBJ05828",
-#                     "tumorDnaBamUri": "s3://path-to-tumor-bam",
-#                     "normalDnaBamUri": "s3://path-to-normal-bam",
-#                     "tumorDnaSampleId": "TUMOR_LIBRARY_ID",
-#                     "normalDnaSampleId": "NORMAL_LIBRARY_ID",
-#                     "genome": "GRCh38_umccr",
-#                     "genomeVersion": "38",
-#                     "genomeType": "alt",
-#                     "forceGenome": True,
-#                     "refDataHmfDataPath": "s3://path-to-reference-data/oncoanalyser/hmf-reference-data/hmftools/hmf_pipeline_resources.38_v2.1.0--1/",
-#                     "genomes": {
-#                         "GRCh38_umccr": {
-#                             "fasta": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/GRCh38_full_analysis_set_plus_decoy_hla.fa",
-#                             "fai": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/samtools_index/1.16/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai",
-#                             "dict": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/samtools_index/1.16/GRCh38_full_analysis_set_plus_decoy_hla.fa.dict",
-#                             "img": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/bwa_index_image/0.7.17-r1188/GRCh38_full_analysis_set_plus_decoy_hla.fa.img",
-#                             "bwamem2Index": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/bwa-mem2_index/2.2.1/",
-#                             "gridssIndex": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/gridss_index/2.13.2/",
-#                             "starIndex": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/star_index/gencode_38/2.7.3a/"
-#                         }
-#                     }
-#                 }
-#             },
-#             None
-#         ),
-#         indent=4
-#     ))
-#
-# # {
-# #     "inputs": {
-# #         "mode": "wgts",
-# #         "samplesheet": [
-# #             {
-# #                 "group_id": "SBJ05828",
-# #                 "subject_id": "SBJ05828",
-# #                 "sample_id": "NORMAL_LIBRARY_ID",
-# #                 "sample_type": "normal",
-# #                 "sequence_type": "dna",
-# #                 "filetype": "bam",
-# #                 "filepath": "s3://path-to-normal-bam"
-# #             },
-# #             {
-# #                 "group_id": "SBJ05828",
-# #                 "subject_id": "SBJ05828",
-# #                 "sample_id": "TUMOR_LIBRARY_ID",
-# #                 "sample_type": "tumor",
-# #                 "sequence_type": "dna",
-# #                 "filetype": "bam",
-# #                 "filepath": "s3://path-to-tumor-bam"
-# #             },
-# #             {
-# #                 "group_id": "SBJ05828",
-# #                 "subject_id": "SBJ05828",
-# #                 "sample_id": "NORMAL_LIBRARY_ID",
-# #                 "sample_type": "normal",
-# #                 "sequence_type": "dna",
-# #                 "filetype": "bai",
-# #                 "filepath": "s3://path-to-normal-bam.bai"
-# #             },
-# #             {
-# #                 "group_id": "SBJ05828",
-# #                 "subject_id": "SBJ05828",
-# #                 "sample_id": "TUMOR_LIBRARY_ID",
-# #                 "sample_type": "tumor",
-# #                 "sequence_type": "dna",
-# #                 "filetype": "bai",
-# #                 "filepath": "s3://path-to-tumor-bam.bai"
-# #             }
-# #         ],
-# #         "genome": "GRCh38_umccr",
-# #         "genome_version": "38",
-# #         "genome_type": "alt",
-# #         "force_genome": true,
-# #         "ref_data_hmf_data_path": "s3://path-to-reference-data/oncoanalyser/hmf-reference-data/hmftools/hmf_pipeline_resources.38_v2.1.0--1/",
-# #         "genomes": {
-# #             "GRCh38_umccr": {
-# #                 "fasta": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/GRCh38_full_analysis_set_plus_decoy_hla.fa",
-# #                 "fai": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/samtools_index/1.16/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai",
-# #                 "dict": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/samtools_index/1.16/GRCh38_full_analysis_set_plus_decoy_hla.fa.dict",
-# #                 "img": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/bwa_index_image/0.7.17-r1188/GRCh38_full_analysis_set_plus_decoy_hla.fa.img",
-# #                 "bwamem2_index": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/bwa-mem2_index/2.2.1/",
-# #                 "gridss_index": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/gridss_index/2.13.2/",
-# #                 "star_index": "s3://path-to-reference-data/oncoanalyser/GRCh38_umccr/star_index/gencode_38/2.7.3a/"
-# #             }
-# #         }
-# #     }
-# # }
