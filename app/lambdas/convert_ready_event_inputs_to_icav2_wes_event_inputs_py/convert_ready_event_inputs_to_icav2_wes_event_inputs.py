@@ -24,6 +24,7 @@ To generate an output like the following
         "monochrome_logs": True,
         "mode": "wgts",
         "publish_dir_mode": "symlink",
+        "outdir": "out"
         "samplesheet": [
             # Tumor Somatic dir
             {
@@ -63,6 +64,7 @@ import pandas as pd
 DEFAULT_MODE = "wgts"
 DEFAULT_MONOCHROME_LOGS = True
 DEFAULT_PUBLISH_DIR_MODE = "symlink"
+DEFAULT_OUTDIR = "out"
 
 DEFAULT_SAMPLESHEET_COLUMNS = [
     "id",
@@ -138,6 +140,7 @@ def handler(event, context):
             {
                 "monochrome_logs": ready_event_inputs.get("monochromeLogs", DEFAULT_MONOCHROME_LOGS),
                 "publish_dir_mode": ready_event_inputs.get("publishDirMode", DEFAULT_PUBLISH_DIR_MODE),
+                "outdir": ready_event_inputs.get("outdir", DEFAULT_OUTDIR),
                 "samplesheet": generate_samplesheet_from_inputs(ready_event_inputs),
                 "ref_data_path": ready_event_inputs["refDataPath"],
             }.items()
