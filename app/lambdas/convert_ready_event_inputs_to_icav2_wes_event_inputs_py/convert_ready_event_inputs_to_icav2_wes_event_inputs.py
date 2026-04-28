@@ -61,7 +61,6 @@ from typing import List, Dict, Union, cast
 import pandas as pd
 
 # Globals
-DEFAULT_MODE = "wgts"
 DEFAULT_MONOCHROME_LOGS = True
 DEFAULT_PUBLISH_DIR_MODE = "symlink"
 DEFAULT_OUTDIR = "out"
