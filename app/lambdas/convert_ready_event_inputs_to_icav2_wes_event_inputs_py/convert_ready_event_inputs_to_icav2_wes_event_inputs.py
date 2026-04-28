@@ -24,7 +24,7 @@ To generate an output like the following
         "monochrome_logs": True,
         "mode": "wgts",
         "publish_dir_mode": "symlink",
-        "outdir": "out"
+        "outdir": "out",
         "samplesheet": [
             # Tumor Somatic dir
             {
@@ -50,7 +50,7 @@ To generate an output like the following
                 "filetype": "oncoanalyser_dir",
                 "filepath": "s3://path/to/oncoanalyser_dir/",
             },
-        ]
+        ],
         "ref_data_path": "s3://path-to-reference-data/oncoanalyser/hmf-reference-data/hmftools/hmf_pipeline_resources.38_v2.1.0--1/"
     }
 }
