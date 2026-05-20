@@ -48,7 +48,7 @@ export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersio
   '0.6.3': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
   // Upgrade of umccr-reference-data from v2--0 to v2--1
   '0.6.4': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.4/',
-  // Add pcgr/20250314/ and pcgr/VEP/ for 0.7.0
+  // Add pcgr/homo_sapiens_vep_113_GRCh38.tar.gz and pcgr/pcgr_ref_data.20250314.grch38.tgz for 0.7.0
   '0.7.0': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.7.0/',
 };
 
