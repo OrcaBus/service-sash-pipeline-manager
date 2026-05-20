@@ -1,2 +1,7 @@
-onlyBuiltDependencies:
-  - unrs-resolver
+allowBuilds:
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@aws-cdk/cloud-assembly-schema@53.25.0'
+  - aws-cdk-lib@2.256.0
+  - aws-cdk@2.1123.0
+  - ts-jest@29.4.10
