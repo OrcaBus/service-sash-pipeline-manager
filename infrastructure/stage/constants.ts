@@ -37,7 +37,7 @@ export const WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP: Record<
   '0.6.2': '5865b1f2-ce78-4fe7-a630-24cb6a55fb88',
   '0.6.3': '5b4060de-5e43-4aa6-b408-f51537d43c65',
   '0.6.4': '51f0d1dc-be92-4a5e-9a8a-ad8d44a6431c',
-  '0.7.0': 'b0e1873d-2266-489c-a5d7-341c4fde96a4',
+  '0.7.0': 'e1bfcedb-687b-4191-82ce-c74ac9271270',
 };
 
 export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersionType, string> = {
