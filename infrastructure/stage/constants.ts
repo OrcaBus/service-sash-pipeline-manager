@@ -46,6 +46,7 @@ export const WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP: Record<WorkflowVersio
   '0.6.1': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
   '0.6.2': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
   '0.6.3': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.1/',
+  // Upgrade of umccr-reference-data from v2--0 to v2--1
   '0.6.4': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.6.4/',
   // Add pcgr/20250314/ and pcgr/VEP/ for 0.7.0
   '0.7.0': 's3://reference-data-503977275616-ap-southeast-2/refdata/sash/0.7.0/',
