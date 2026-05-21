@@ -114,7 +114,7 @@ function buildLambda(scope: Construct, props: BuildLambdaProps): LambdaObject {
   }
 
   /*
-    Special if the lambdaName is 'validateDraftCompleteSchema', we need to add in the ssm parameters
+    Special if the lambdaName is 'validateDraftDataCompleteSchema', we need to add in the ssm parameters
     to the REGISTRY_NAME and SCHEMA_PATH
    */
   if (props.lambdaName === 'validateDraftDataCompleteSchema') {
