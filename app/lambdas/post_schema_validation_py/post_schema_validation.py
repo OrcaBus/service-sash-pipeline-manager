@@ -127,7 +127,7 @@ def validate_inputs(
     # Initalise the data uris list
     data_uris = []
 
-    # Get all bam inputs
+    # Get all inputs
     for key in INPUT_KEYS_TO_VALIDATE_LIST:
         data_uris.append(inputs.get(key))
 
@@ -140,6 +140,11 @@ def validate_inputs(
 
     # Confirm each data uri is available from the filemanager
     for data_uri in data_uris:
+        # Check if data uri is a file
+        if data_uri.endswith("/"):
+            # Cannot validate folders
+            continue
+
         # Try to get the object from the filemanager
         try:
             get_s3_object_id_from_s3_uri(data_uri)
@@ -160,7 +165,7 @@ def validate_inputs(
         data_uris
     ))
 
-    # Validate each fastq uri
+    # Validate each uri can be found in the icav2 project
     for data_uri in data_uris:
         # Try get the icav2 object by uri
         try:
