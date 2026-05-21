@@ -1,6 +1,6 @@
 /* Directory constants */
 import path from 'path';
-import { WorkflowVersionType } from './interfaces';
+import { PayloadVersionType, WorkflowVersionType } from './interfaces';
 import { DATA_SCHEMA_REGISTRY_NAME } from '@orcabus/platform-cdk-constructs/shared-config/event-bridge';
 import {
   REFERENCE_DATA_BUCKET,
@@ -18,7 +18,7 @@ export const WORKFLOW_NAME = 'sash';
 // However, because this workflow has the same workflow name as the
 // existing production workflow, we need to filter on the payload version
 // to prevent the wrong service from being triggered
-export const DEFAULT_PAYLOAD_VERSION = '2025.08.05';
+export const DEFAULT_PAYLOAD_VERSION: PayloadVersionType = '2025.08.05';
 
 // Default prefixes
 export const WORKFLOW_LOGS_PREFIX = `s3://{__CACHE_BUCKET__}/{__CACHE_PREFIX__}logs/${WORKFLOW_NAME}/`;
