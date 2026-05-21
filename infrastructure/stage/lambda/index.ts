@@ -6,7 +6,7 @@ import {
   lambdaRequirementsMap,
 } from './interfaces';
 import { PythonUvFunction } from '@orcabus/platform-cdk-constructs/lambda';
-import { LAMBDA_DIR, WORKFLOW_NAME } from '../constants';
+import { DEFAULT_PAYLOAD_VERSION, LAMBDA_DIR, WORKFLOW_NAME } from '../constants';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cdk from 'aws-cdk-lib';
@@ -115,15 +115,16 @@ function buildLambda(scope: Construct, props: BuildLambdaProps): LambdaObject {
 
   /*
     Special if the lambdaName is 'validateDraftCompleteSchema', we need to add in the ssm parameters
-    to the REGISTRY_NAME and SCHEMA_NAME
+    to the REGISTRY_NAME and SCHEMA_PATH
    */
   if (props.lambdaName === 'validateDraftDataCompleteSchema') {
     const draftSchemaName: SchemaNames = 'completeDataDraft';
     lambdaFunction.addEnvironment('SSM_REGISTRY_NAME', path.join(SSM_SCHEMA_ROOT, 'registry'));
     lambdaFunction.addEnvironment(
-      'SSM_SCHEMA_NAME',
-      path.join(SSM_SCHEMA_ROOT, camelCaseToKebabCase(draftSchemaName), 'latest')
+      'SSM_SCHEMA_PATH',
+      path.join(SSM_SCHEMA_ROOT, camelCaseToKebabCase(draftSchemaName))
     );
+    lambdaFunction.addEnvironment('DEFAULT_PAYLOAD_VERSION', DEFAULT_PAYLOAD_VERSION);
   }
 
   /* Return the function */
