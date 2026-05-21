@@ -39,6 +39,14 @@ COMMENT_AUTHOR = "{WORKFLOW_NAME}-workflow-validation-service"
 TEST_BUCKET_ENV_VAR = "TEST_DATA_BUCKET_NAME"
 REF_DATA_BUCKET_ENV_VAR = "REF_DATA_BUCKET_NAME"
 
+# Input Keys
+INPUT_KEYS_TO_VALIDATE_LIST = [
+    'refDataPath',
+    'dragenSomaticDir',
+    'dragenGermlineDir',
+    'oncoanalyserDnaDir'
+]
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -118,16 +126,9 @@ def validate_inputs(
     """
     # Initalise the data uris list
     data_uris = []
-    # Get all fastq uris from the inputs
-    # (we will support oncoanalyser from fastq in a later iteration)
-    for fastq_obj in inputs.get("fastqListRows", []):
-        # We filter out 'None' values later
-        data_uris.extend([
-            fastq_obj.get("read1FileUri"),
-            fastq_obj.get("read2FileUri")
-        ])
+
     # Get all bam inputs
-    for key in ["tumorDnaBamUri", "normalDnaBamUri"]:
+    for key in INPUT_KEYS_TO_VALIDATE_LIST:
         data_uris.append(inputs.get(key))
 
     # Remove empty / null values from list
