@@ -154,12 +154,17 @@ def validate_inputs(
     # Or externally mounted data uris (e.g. s3://reference-data-bucket/...)
     data_uris = list(filter(
         lambda uri_iter_: (
-            # Doesn't belong to test-data bucket
-            # Doesn't belong to the project bucket
+            # Doesn't
+            #   * belong to test-data bucket
+            #   * belong to the project bucket
+            #   * A uri that belongs to the project and is a file (this is validated above)
             not (
                 uri_iter_.startswith(f"s3://{environ[TEST_BUCKET_ENV_VAR]}/") or
                 uri_iter_.startswith(f"s3://{environ[REF_DATA_BUCKET_ENV_VAR]}/") or
-                uri_iter_.startswith(project_prefix)
+                (
+                    uri_iter_.startswith(project_prefix) and
+                    not uri_iter_.endswith("/")
+                )
             )
         ),
         data_uris
