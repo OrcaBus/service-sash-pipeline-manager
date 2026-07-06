@@ -19,8 +19,6 @@ import {
   WORKFLOW_OUTPUT_PREFIX,
   WORKFLOW_VERSION_TO_SASH_REFERENCE_PATHS_MAP,
   WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP,
-  TEST_DATA_BUCKET_NAME,
-  REF_DATA_BUCKET_NAME,
 } from './constants';
 import { substituteBucketConstants } from './utils';
 import { SsmParameterPaths, SsmParameterValues } from './ssm/interfaces';
@@ -84,10 +82,6 @@ export const getStatelessStackProps = (stage: StageName): StatelessApplicationSt
     eventBusName: EVENT_BUS_NAME,
     // SSM Parameter Paths
     ssmParameterPaths: getSsmParameterPaths(),
-
-    // TestData and RefData bucket names
-    testDataBucketName: TEST_DATA_BUCKET_NAME,
-    refDataBucketName: REF_DATA_BUCKET_NAME,
 
     // Stage Name
     stageName: stage,
