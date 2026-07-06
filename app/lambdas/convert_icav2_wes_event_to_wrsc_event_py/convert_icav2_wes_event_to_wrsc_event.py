@@ -52,6 +52,14 @@ def handler(event, context):
     else:
         outputs = None
 
+    # Check if the status was FAILED, if so we populate the error message and type
+    if icav2_wes_event['status'] == 'FAILED':
+        error_type = icav2_wes_event.get('errorType', 'UnknownErrorType')
+        error_message_uri = icav2_wes_event.get('errorMessageUri', None)
+    else:
+        error_message_uri = None
+        error_type = None
+
     # Update the latest payload with the outputs if available
     if outputs:
         latest_payload['data']['outputs'] = outputs
@@ -79,5 +87,7 @@ def handler(event, context):
                 "version": latest_payload['version'],
                 "data": latest_payload['data']
             }
-        }
+        },
+        "errorMessageUri": error_message_uri,
+        "errorType": error_type,
     }
