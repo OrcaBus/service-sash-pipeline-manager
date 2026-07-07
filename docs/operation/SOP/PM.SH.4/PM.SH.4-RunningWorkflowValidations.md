@@ -40,7 +40,7 @@ This runs `tsc` compilation followed by Jest tests that check all CDK stacks aga
 
 ### End-to-End Validation
 
-1. **Submit a test DRAFT event** using the [Manual Pipeline Execution SOP](../PM.SAS.1/PM.SAS.1-ManualPipelineExecution.md)
+1. **Submit a test DRAFT event** using the [Manual Pipeline Execution SOP](../PM.SH.1/PM.SH.1-ManualPipelineExecution.md)
    - Use test libraries from the beta/dev environment
    - Ensure upstream Dragen WGTS DNA and Oncoanalyser WGTS DNA runs have SUCCEEDED for the test libraries
 
