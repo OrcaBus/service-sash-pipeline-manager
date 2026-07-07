@@ -1,6 +1,5 @@
 /* Event Bridge Rules */
 import {
-  // BuildDraftRuleProps,
   BuildReadyRuleProps,
   BuildIcav2AnalysisStateChangeRuleProps,
   eventBridgeRuleNameList,
@@ -16,7 +15,6 @@ import {
   DEFAULT_PAYLOAD_VERSION,
   DRAFT_STATUS,
   DRAGEN_WGTS_DNA_WORKFLOW_NAME,
-  // DRAFT_STATUS,
   ICAV2_WES_EVENT_SOURCE,
   ICAV2_WES_STATE_CHANGE_DETAIL_TYPE,
   ONCOANALYSER_WGTS_DNA_WORKFLOW_NAME,

@@ -30,10 +30,6 @@ export interface StatelessApplicationStackConfig {
   // SSM Parameters
   ssmParameterPaths: SsmParameterPaths;
 
-  // TestData and RefData bucket names
-  testDataBucketName: string;
-  refDataBucketName: string;
-
   // Stage Name (required for lambdas needing ICAtools)
   stageName: StageName;
 }

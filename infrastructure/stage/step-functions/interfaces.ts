@@ -12,24 +12,24 @@ export type StateMachineName =
   | 'glueSucceededEventsToDraftUpdate'
   // Populate Draft Data
   | 'populateDraftData'
-  // Validate the draft data payload
-  | 'validateDraftToReady'
+  // Validate draft data and put ready event
+  | 'validateDraftDataAndPutReadyEvent'
   // Ready-to-Submitted
   | 'readyEventToIcav2WesRequestEvent'
   // Post-submission event conversion
-  | 'icav2WesAscEventToWorkflowRscEvent';
+  | 'icav2WesEventToWrscEvent';
 
 export const stateMachineNameList: StateMachineName[] = [
   // Upstream Events
   'glueSucceededEventsToDraftUpdate',
   // Populate Draft Data
   'populateDraftData',
-  // Validate
-  'validateDraftToReady',
+  // Validate draft data and put ready event
+  'validateDraftDataAndPutReadyEvent',
   // Ready-to-Submitted
   'readyEventToIcav2WesRequestEvent',
   // Post-submission event conversion
-  'icav2WesAscEventToWorkflowRscEvent',
+  'icav2WesEventToWrscEvent',
 ];
 
 // Requirements interface for Step Functions
@@ -66,13 +66,13 @@ export const stepFunctionsRequirementsMap: Record<StateMachineName, StepFunction
     needsEventPutPermission: true,
     needsSsmParameterStoreAccess: true,
   },
-  validateDraftToReady: {
+  validateDraftDataAndPutReadyEvent: {
     needsEventPutPermission: true,
   },
   readyEventToIcav2WesRequestEvent: {
     needsEventPutPermission: true,
   },
-  icav2WesAscEventToWorkflowRscEvent: {
+  icav2WesEventToWrscEvent: {
     needsEventPutPermission: true,
   },
 };
@@ -96,6 +96,7 @@ export const stepFunctionToLambdasMap: Record<StateMachineName, LambdaName[]> = 
     // Shared - preready creation lambdas
     'comparePayload',
     'generateWruEventObjectWithMergedData',
+    'getMissingSchemaFields',
     'getOncoanalyserDirFromPortalRunId',
     'findLatestWorkflow',
     'getWorkflowRunObject',
@@ -107,9 +108,11 @@ export const stepFunctionToLambdasMap: Record<StateMachineName, LambdaName[]> = 
     'getFastqRgidsFromLibraryId',
     'getLibraries',
     'getMetadataTags',
+    // Commentary Functions
+    'addPopulateDraftComment',
   ],
-  // Validate the draft data payload
-  validateDraftToReady: [
+  // Validate draft data and put ready event
+  validateDraftDataAndPutReadyEvent: [
     // Shared - validation lambdas
     'validateDraftDataCompleteSchema',
     'postSchemaValidation',
@@ -117,5 +120,5 @@ export const stepFunctionToLambdasMap: Record<StateMachineName, LambdaName[]> = 
   // Ready-to-Submitted
   readyEventToIcav2WesRequestEvent: ['convertReadyEventInputsToIcav2WesEventInputs'],
   // Post-submission event conversion
-  icav2WesAscEventToWorkflowRscEvent: ['convertIcav2WesEventToWrscEvent'],
+  icav2WesEventToWrscEvent: ['convertIcav2WesEventToWrscEvent', 'addWesFailureComment'],
 };

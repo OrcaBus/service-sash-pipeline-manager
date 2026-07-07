@@ -1,5 +1,5 @@
-Manual Pipeline Execution
-================================================================================
+# Manual Pipeline Execution
+
 - Version: 2026.04.28
 - Contact: Alexis Lucattini, [alexisl@unimelb.edu.au](mailto:alexisl@unimelb.edu.au)
 
@@ -10,14 +10,12 @@ Table of Contents
 - [Confirmation](#confirmation)
 
 
-Introduction
---------------------------------------------------------------------------------
+## Introduction
 
 This Pipeline Manager manages the execution of the Sash pipeline.
 Here we describe the SOP for manual execution of the pipeline.
 
-Requirements
---------------------------------------------------------------------------------
+## Requirements
 
 - Appropriate AWS permissions, this should be an operator level permissions for one of umccr-dev/stg/prod
 - AWS credentials set up in the local environment
@@ -30,9 +28,7 @@ Requirements
   - [semver](https://github.com/fsaintjacques/semver-tool)
 
 
-
-Procedure
---------------------------------------------------------------------------------
+## Procedure
 
 To initiate a pipeline execution we need to generate an initial DRAFT event. For more details consult the main [README](../../../../README.md).
 For convenience, we provide a shell script that generates and optionally submits an appropriate event.
@@ -41,7 +37,7 @@ For convenience, we provide a shell script that generates and optionally submits
   - Especially check the settings in the `Globals` section
     - ensure the values are fit for your use case, e.g. for clinical samples match the accredited pipeline details
   - Set the engine parameters (if necessary) and library id(s) in the positional arguments.
-- Execute the script (e.g. `bash generate-WRU-draft.sh --comment 'Manual rerun' <your_tn_library_id> <your_normal_library_id>`)
+- Execute the script (e.g. `bash generate-WRU-draft.sh --comment 'Manual rerun' <your_tumor_library_id> <your_normal_library_id>`)
   - Note: AWS credentials need to be set on the environment as does your PORTAL_TOKEN (see the script for details)
   - Use the comment parameter to explain the reason for the manual run, this will be visible in the Portal and helpful for future reference.
 - The script should produce the JSON output of the DRAFT event that can be inspected to double check that reflects the intended request
@@ -49,7 +45,6 @@ For convenience, we provide a shell script that generates and optionally submits
   - You can have the script save the output json file by using the `--save-draft-payload` method.
 
 
-Confirmation
---------------------------------------------------------------------------------
+## Confirmation
 
 The OrcaBus [Portal](https://portal.umccr.org/) can be used to check whether the event resulted in a WorkflowRun DRAFT record.
