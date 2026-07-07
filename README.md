@@ -107,11 +107,10 @@ Listens for `Icav2WesAnalysisStateChange` events and converts them into `Workflo
 
 ### Consumed Events
 
-| DetailType                    | Source                    | Schema                                                                                                                                     | Description                                          |
-|-------------------------------|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| `WorkflowRunStateChange`      | `orcabus.workflowmanager` | [WorkflowRunStateChange](https://github.com/OrcaBus/wiki/tree/main/orcabus-platform#workflowrunstatechange)                                | Carries DRAFT (and later READY) workflow run records |
-| `WorkflowRunStateChange`      | `orcabus.workflowmanager` | same                                                                                                                                       | Upstream SUCCEEDED events (oncoanalyser-wgts-dna, dragen-wgts-dna) |
-| `Icav2WesAnalysisStateChange` | `orcabus.icav2wes`        | [Icav2WesAnalysisStateChange](https://github.com/OrcaBus/service-icav2-wes-manager/blob/main/app/event-schemas/analysis-state-change.json) | ICAv2 analysis state updates                         |
+ | DetailType                    | Source                    | Schema                                                                                                                                     | Description                                                                                         |
+ |-------------------------------|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+ | `WorkflowRunStateChange`      | `orcabus.workflowmanager` | [WorkflowRunStateChange](https://github.com/OrcaBus/wiki/tree/main/orcabus-platform#workflowrunstatechange)                                | DRAFT/READY workflow run records for Sash, and upstream SUCCEEDED events (oncoanalyser/dragen WGTS) |
+ | `Icav2WesAnalysisStateChange` | `orcabus.icav2wes`        | [Icav2WesAnalysisStateChange](https://github.com/OrcaBus/service-icav2-wes-manager/blob/main/app/event-schemas/analysis-state-change.json) | ICAv2 analysis state updates                                                                        |
 
 ### Published Events
 
