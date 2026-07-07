@@ -26,7 +26,7 @@ PAYLOAD_VERSION="2025.08.05"
 ANALYSIS_STORAGE_SIZE="SMALL"
 
 # SOP constants
-SOP_VERSION="2026.04.28"
+SOP_VERSION="2026.07.07"
 SOP_ID="PM.SH.1"
 GITHUB_REPO="OrcaBus/service-sash-pipeline-manager"
 THIS_SCRIPT_PATH="docs/operation/SOP/${SOP_ID}/generate-WRU-draft.sh"
@@ -845,4 +845,4 @@ if ! comment_response="$(generate_workflow_comment "${workflow_run_orcabus_id}" 
 fi
 
 echo_stderr "Workflow Run Creation Event complete!"
-echo_stderr "Please head to 'https://orcaui.$(get_hostname_from_ssm)/runs/workflow/${workflow_run_orcabus_id}' to track the status of the workflow run"
+echo_stderr "Please head to 'https://orcaui.$(get_hostname_from_ssm)/workflows/workflowRuns/${workflow_run_orcabus_id}' to track the status of the workflow run"
