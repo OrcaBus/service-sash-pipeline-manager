@@ -47,5 +47,5 @@ See: [`app/lambdas/convert_ready_event_inputs_to_icav2_wes_event_inputs_py/`](..
 ## Testing
 
 1. Deploy your changes to development by updating the infrastructure through CodePipeline
-2. Follow the [Manual Pipeline Execution SOP](../PM.SAS.1/PM.SAS.1-ManualPipelineExecution.md) to verify changes are working
-3. Run the [Workflow Validations SOP](../PM.SAS.4/PM.SAS.4-RunningWorkflowValidations.md) for comprehensive testing
+2. Follow the [Manual Pipeline Execution SOP](../PM.SH.1/PM.SH.1-ManualPipelineExecution.md) to verify changes are working
+3. Run the [Workflow Validations SOP](../PM.SH.4/PM.SH.4-RunningWorkflowValidations.md) for comprehensive testing

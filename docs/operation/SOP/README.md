@@ -19,27 +19,27 @@ These tasks range from:
 * Verifying a new version of the Sash Pipeline
 * Troubleshooting common issues with the Sash Pipeline
 
-<a name="pm.sas.1"></a>
+<a name="PM.SH.1"></a>
 ## Manually running an analysis
 
-* [PM.SAS.1 - Kicking off a reanalysis of a set of samples manually](PM.SAS.1/PM.SAS.1-ManualPipelineExecution.md)
+* [PM.SH.1 - Kicking off a reanalysis of a set of samples manually](PM.SH.1/PM.SH.1-ManualPipelineExecution.md)
 
-<a name="pm.sas.2"></a>
+<a name="PM.SH.2"></a>
 ## Installation and Pipeline Deployment
 
-* [PM.SAS.2 - Deploying a new version of the Sash Pipeline](PM.SAS.2/PM.SAS.2-DeployingNewPipelineVersion.md)
+* [PM.SH.2 - Deploying a new version of the Sash Pipeline](PM.SH.2/PM.SH.2-DeployingNewPipelineVersion.md)
 
-<a name="pm.sas.3"></a>
+<a name="PM.SH.3"></a>
 ## Parameter Updates
 
-* [PM.SAS.3 - Updating SSM Parameters for the Sash Pipeline](PM.SAS.3/PM.SAS.3-UpdatingSsmParameters.md)
+* [PM.SH.3 - Updating SSM Parameters for the Sash Pipeline](PM.SH.3/PM.SH.3-UpdatingSsmParameters.md)
 
-<a name="pm.sas.4"></a>
+<a name="PM.SH.4"></a>
 ## Running Workflow Validations
 
-* [PM.SAS.4 - Running Workflow Validations](PM.SAS.4/PM.SAS.4-RunningWorkflowValidations.md)
+* [PM.SH.4 - Running Workflow Validations](PM.SH.4/PM.SH.4-RunningWorkflowValidations.md)
 
-<a name="pm.sas.5"></a>
+<a name="PM.SH.5"></a>
 ## Troubleshooting
 
-* [PM.SAS.5 - Troubleshooting common issues with the Sash Pipeline](PM.SAS.5/PM.SAS.5-Troubleshooting.md)
+* [PM.SH.5 - Troubleshooting common issues with the Sash Pipeline](PM.SH.5/PM.SH.5-Troubleshooting.md)

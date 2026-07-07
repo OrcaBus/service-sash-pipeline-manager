@@ -43,7 +43,7 @@ This SOP covers how to deploy a new version of the Sash pipeline to ICAv2.
 
 ### Running the Pipeline
 
-Test the pipeline by submitting a manual DRAFT event. See [PM.SAS.1](../PM.SAS.1/PM.SAS.1-ManualPipelineExecution.md) for instructions.
+Test the pipeline by submitting a manual DRAFT event. See [PM.SH.1](../PM.SH.1/PM.SH.1-ManualPipelineExecution.md) for instructions.
 
 You will need to include the `pipelineId` engine parameter override:
 
