@@ -7,7 +7,6 @@ Table of Contents
 - [Introduction](#introduction)
 - [Requirements](#requirements)
 - [Development Deployment](#development-deployment)
-  - [CWL ZIP](#cwl-zip)
   - [Pipeline Creation](#pipeline-creation)
   - [Running the Pipeline](#running-the-pipeline)
   - [Pipeline Update](#pipeline-update)
@@ -19,40 +18,28 @@ Table of Contents
 
 ## Introduction
 
-This SOP covers how to deploy a new version of the Sash pipeline to ICAv2. The Sash pipeline depends on upstream Oncoanalyser WGTS DNA and Dragen WGTS DNA outputs; ensure those pipelines are already deployed and validated before deploying a new Sash version.
+This SOP covers how to deploy a new version of the Sash pipeline to ICAv2.
 
 ## Requirements
 
-- Access to the [cwl-ica repository](https://github.com/umccr/cwl-ica) with CWL knowledge
+- Access to the [sash repository](https://github.com/umccr/sash) with nextflow knowledge
 - ICAv2 CLI tools installed ([ICAv2 CLI](https://help.ica.illumina.com/command-line-interface/cli-installation), [ICAv2 CLI Plugins](https://github.com/umccr/icav2-cli-plugins/wiki))
 - AWS access to the appropriate accounts
 - Contributor level permissions in the target ICAv2 project
 
-
 ## Development Deployment
-
-### CWL ZIP
-
-Package the CWL workflow into a ZIP file:
-
-```shell
-cwl-ica icav2-zip-workflow \
-  --workflow-path workflows/sash-pipeline/<version>/sash-pipeline__<version>.cwl \
-  --force
-```
 
 ### Pipeline Creation
 
-Enter the appropriate ICAv2 project and create the pipeline:
+1. Clone the [sash GitHub repository][sash_github_repo] for the pipeline you wish to deploy.
+2. Package the cloned directory into a ZIP file for deployment into ICA.
+3. Deploy into the development ICAv2 project:
+   ```shell
+   icav2 projects enter development
+   icav2 projectpipelines create-nextflow-pipeline-from-zip <workflow-zip>
+   ```
+4. Keep note of the pipeline ID.
 
-```shell
-icav2 projects enter development
-
-icav2 projectpipelines create-cwl-pipeline-from-zip \
-  sash-pipeline__<version>.zip
-```
-
-Keep note of the pipeline ID — you will need it for subsequent steps.
 
 ### Running the Pipeline
 
@@ -73,31 +60,34 @@ You will need to include the `pipelineId` engine parameter override:
 }
 ```
 
-### Pipeline Update
-
-If the pipeline did not work correctly:
-
-1. Fix the CWL code
-2. Re-zip using the `cwl-ica icav2-zip-workflow` command
-3. Update the pipeline in ICAv2:
-   ```shell
-   icav2 projectpipelines update sash-pipeline__<version>.zip <pipeline_id>
-   ```
-4. Re-run the pipeline
-
-
 ## Production Deployment
 
-### GitHub Releases
+### Pipeline linking
 
-Once validated in development:
+We can link pipelines from one project to another.
 
-1. Push your CWL changes to a branch, get PR reviewed and merged
-2. Create a release:
-   ```shell
-   cwl-ica workflow-release \
-     --workflow-path workflows/sash-pipeline/<version>/sash-pipeline__<version>.cwl
-   ```
+```bash
+icav2 projects enter production
+icav2 projectpipeline link <pipeline-id>
+```
+
+### Infrastructure Constants Updates
+
+Update `infrastructure/stage/constants.ts` to include the new pipeline ID in `WORKFLOW_VERSION_TO_DEFAULT_ICAV2_PIPELINE_ID_MAP`.
+
+### Workflow Manager Updates
+
+Register the new workflow version with the Workflow Manager:
+
+```shell
+make-new-workflow.sh \
+  --workflow-name 'oncoanalyser-wgts-dna' \
+  --workflow-version "<version>" \
+  --executionEngine "ICA" \
+  --executionEnginePipelineId "<pipeline-id>" \
+  --codeVersion "$(cd <nf-repo> && git rev-parse --short=7 HEAD)" \
+  --validationState "VALIDATED"
+```
 
 ### Infrastructure Constants Updates
 
@@ -124,6 +114,13 @@ make-new-workflow.sh \
   --workflow-version "<version>" \
   --executionEngine "ICA" \
   --executionEnginePipelineId "<PIPELINE_ID>" \
-  --codeVersion "$(cd <cwl-ica-repo> && git rev-parse --short=7 HEAD)" \
+  --codeVersion "$(cd <sash-repo> && git rev-parse --short=7 HEAD)" \
   --validationState "VALIDATED"
 ```
+
+### Analysis Glue Updates
+
+Update the [analysis-glue repository][analysis_glue_repo_link] constants to include the new workflow version.
+
+[analysis_glue_repo_link]: https://github.com/OrcaBus/service-analysis-glue
+[sash_github_repo]: https://github.com/umccr/sash

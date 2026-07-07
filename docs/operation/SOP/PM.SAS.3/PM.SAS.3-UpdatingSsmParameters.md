@@ -32,7 +32,6 @@ Common parameters you may need to update:
 
 After modifying constants, create a PR and merge. CodePipeline will deploy the updated SSM parameters to all environments.
 
-
 ## Draft Event Schema
 
 If you are adding or removing input parameters, you may need to update the [DRAFT event schema](../../../../app/event-schemas/) to reflect these changes. This ensures that the input validation for the DRAFT payload is accurate and up-to-date.

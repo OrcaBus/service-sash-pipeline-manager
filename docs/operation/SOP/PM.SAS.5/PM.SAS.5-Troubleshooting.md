@@ -74,7 +74,7 @@ This SOP provides guidance for diagnosing and resolving common issues with the S
 **Possible causes**:
 
 1. **Input data issues** — Input directories may be empty or contain corrupt files
-2. **CWL workflow error** — Bug in the CWL pipeline definition
+2. **Nextflow workflow error** — Bug in the Nextflow pipeline definition
 3. **Resource limits** — ICAv2 compute resource limits exceeded
 
 **Resolution**:

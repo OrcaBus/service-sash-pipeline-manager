@@ -14,7 +14,7 @@ This is the index for SOPs for various tasks handling the Sash Pipeline.
 
 These tasks range from:
 * Kicking off a reanalysis of a set of samples manually
-* Installation / deployment of a new CWL Workflow onto the ICAv2 platform
+* Installation / deployment of a new nextflow Workflow onto the ICAv2 platform
 * Updating SSM parameters for the pipeline
 * Verifying a new version of the Sash Pipeline
 * Troubleshooting common issues with the Sash Pipeline

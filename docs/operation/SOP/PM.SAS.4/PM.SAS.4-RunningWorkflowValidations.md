@@ -14,7 +14,8 @@ Table of Contents
 
 ## Introduction
 
-This SOP describes how to validate the Sash pipeline after making changes to infrastructure, parameters, or the CWL workflow. Validation ensures that the pipeline can successfully process a DRAFT event through to SUCCEEDED status.
+This SOP describes how to validate the Sash pipeline after making changes to infrastructure, parameters, or the nextflow workflow.
+Validation ensures that the pipeline can successfully process a DRAFT event through to SUCCEEDED status.
 
 
 ## Requirements
