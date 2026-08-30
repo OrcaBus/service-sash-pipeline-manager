@@ -51,6 +51,14 @@ def handler(event, context):
             libraries
         ))
 
+    # The draft payload may be empty ({}) or None when the workflow run has no
+    # payload yet (get_draft_payload returns {"payload": {}} in that case).
+    # Guard against missing 'data' before accessing sash_payload['data'].
+    if sash_payload is None:
+        sash_payload = {}
+    if 'data' not in sash_payload or sash_payload['data'] is None:
+        sash_payload['data'] = {}
+
     # First check if the oncoanalyser draft workflow object has the fields we would update with the
 
     # Generate a workflow run update object with the merged data
@@ -65,7 +73,7 @@ def handler(event, context):
     ):
         # Return the OG, we dont want to overwrite existing data
         sash_draft_workflow_update["payload"] = {
-            "version": sash_payload['version'],
+            "version": sash_payload.get('version'),
             "data": sash_payload['data']
         }
         return {
@@ -98,7 +106,7 @@ def handler(event, context):
 
     # Update the inputs with the dragen draft payload data
     sash_draft_workflow_update["payload"] = {
-        "version": sash_payload['version'],
+        "version": sash_payload.get('version'),
         "data": new_data_object
     }
 
